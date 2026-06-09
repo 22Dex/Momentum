@@ -1,26 +1,73 @@
-import React, { useState } from 'react';
+// ============================================================
+// OVERVIEW SCREEN — Main home screen of the app
+//
+// WHAT THIS SHOWS:
+//  1. XP bar at the top (how much XP earned today)
+//  2. Today's date + day greeting
+//  3. Task completion circle (shows X/Y tasks done)
+//  4. Four time sections: Morning, Afternoon, Evening, Night
+//     - Each section shows habits + tasks for that time
+//     - Tap a habit to complete it
+//     - Tap + to add a new habit or task
+//
+// SPLIT THESE INTO COMPONENTS LATER:
+//  - <XPBar /> — the top progress bar
+//  - <TaskCircle /> — the circular progress indicator
+//  - <TimeSectionCard /> — each of the 4 time sections
+//  - <HabitRow /> — a single habit inside a section
+//  - <TaskRow /> — a single task inside a section
+//  - <AddHabitModal /> — the modal for adding a habit
+//  - <AddTaskModal /> — the modal for adding a task
+// // ============================================================
+// OVERVIEW SCREEN — Main home screen of the app
+//
+// WHAT THIS SHOWS:
+//  1. XP bar at the top (how much XP earned today)
+//  2. Today's date + day greeting
+//  3. Task completion circle (shows X/Y tasks done)
+//  4. Four time sections: Morning, Afternoon, Evening, Night
+//     - Each section shows habits + tasks for that time
+//     - Tap a habit to complete it
+//     - Tap + to add a new habit or task
+//
+// SPLIT THESE INTO COMPONENTS LATER:
+//  - <XPBar /> — the top progress bar
+//  - <TaskCircle /> — the circular progress indicator
+//  - <TimeSectionCard /> — each of the 4 time sections
+//  - <HabitRow /> — a single habit inside a section
+//  - <TaskRow /> — a single task inside a section
+//  - <AddHabitModal /> — the modal for adding a habit
+//  - <AddTaskModal /> — the modal for adding a task
+//
+
+import { useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  TextInput,
   Modal,
   SafeAreaView,
+  ScrollView,
   StatusBar,
-} from 'react-native';
-import { useAppState } from '../hooks/useAppState';
-import { COLORS, FONTS, SPACING, RADIUS } from '../theme';
-import { TIME_SECTIONS } from '../data/appData';
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import TaskCircle from "../Components/TaskCircle";
+import { TIME_SECTIONS } from "../data/appData";
+import { getRandomQuote } from "../data/quotes";
+import { useAppState } from "../hooks/useAppState";
+import { COLORS, FONTS, RADIUS, SPACING } from "../theme/Themes";
+
 import {
-  getTodayString,
   formatDateLabel,
-  wasCompletedToday,
-  getXPPercent,
+  getCurrentWeekDates,
+  getTodayString,
   getTodayXP,
+  getXPPercent,
   groupTasksBySection,
-} from '../utils/helpers';
+  wasCompletedOn,
+  wasCompletedToday,
+} from "../utils/helpers";
 
 // ============================================================
 // MAIN COMPONENT
@@ -39,18 +86,19 @@ export default function OverviewScreen() {
   // Controls which modal is open: null | 'habit' | 'task'
   const [modalType, setModalType] = useState(null);
   // Which time section the modal is for
-  const [activeSection, setActiveSection] = useState('morning');
+  const [activeSection, setActiveSection] = useState("morning");
 
   // Form state for adding a new habit
-  const [newHabitTitle, setNewHabitTitle] = useState('');
-  const [newHabitXP, setNewHabitXP] = useState('10');
+  const [newHabitTitle, setNewHabitTitle] = useState("");
+  const [newHabitXP, setNewHabitXP] = useState("10");
 
   // Form state for adding a new task
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskPriority, setNewTaskPriority] = useState('normal');
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState("normal");
 
   // Today's date string (e.g. '2026-06-07')
   const today = getTodayString();
+  const weekDates = getCurrentWeekDates(); // weekdates
 
   // Group tasks by section for easy lookup
   const tasksBySection = groupTasksBySection(tasks);
@@ -64,6 +112,10 @@ export default function OverviewScreen() {
   const completedTasks = tasks.filter((t) => t.isCompleted).length;
   const totalTasks = tasks.length;
 
+  // Get a random quote for the day
+  const dailyQuote = getRandomQuote();
+  const [quote, setQuote] = useState(dailyQuote);
+
   // ---- HANDLERS ----
 
   function openModal(type, sectionId) {
@@ -73,10 +125,10 @@ export default function OverviewScreen() {
 
   function closeModal() {
     setModalType(null);
-    setNewHabitTitle('');
-    setNewHabitXP('10');
-    setNewTaskTitle('');
-    setNewTaskPriority('normal');
+    setNewHabitTitle("");
+    setNewHabitXP("10");
+    setNewTaskTitle("");
+    setNewTaskPriority("normal");
   }
 
   function handleAddHabit() {
@@ -84,10 +136,10 @@ export default function OverviewScreen() {
     addHabit({
       title: newHabitTitle.trim(),
       timeSection: activeSection,
-      icon: '⭐',
+      icon: "⭐",
       xpReward: parseInt(newHabitXP) || 10,
       goalTarget: 7,
-      goalType: 'streak',
+      goalType: "streak",
     });
     closeModal();
   }
@@ -111,12 +163,13 @@ export default function OverviewScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-
         {/* ---- HEADER: Date + XP Bar ---- */}
         {/* SPLIT INTO: <XPBar /> and <DayHeader /> */}
         <View style={styles.header}>
-          <Text style={styles.greeting}>Good day 👋</Text>
           <Text style={styles.dateLabel}>{formatDateLabel(today)}</Text>
+          <Text style={styles.greeting}>
+            {quote.text} — {quote.author}
+          </Text>
 
           {/* XP Progress Bar */}
           <View style={styles.xpContainer}>
@@ -131,32 +184,14 @@ export default function OverviewScreen() {
           </View>
         </View>
 
-        {/* ---- TASK COMPLETION CIRCLE ---- */}
-        {/* SPLIT INTO: <TaskCircle /> */}
-        <View style={styles.circleContainer}>
-          {/* 
-            TODO: Replace this View with an actual SVG circle/arc.
-            Libraries to use: react-native-svg or react-native-progress
-            The circle should fill up as tasks are completed.
-          */}
-          <View style={styles.circlePlaceholder}>
-            <Text style={styles.circleNumber}>{completedTasks}</Text>
-            <Text style={styles.circleLabel}>/{totalTasks}</Text>
-            <Text style={styles.circleSub}>tasks done</Text>
-          </View>
-          <Text style={styles.circleCaption}>
-            {completedTasks === totalTasks && totalTasks > 0
-              ? '🎉 All done!'
-              : `${totalTasks - completedTasks} tasks left`}
-          </Text>
-        </View>
+        <TaskCircle completedTasks={completedTasks} totalTasks={totalTasks} />
 
         {/* ---- FOUR TIME SECTIONS ---- */}
         {/* SPLIT INTO: <TimeSectionCard section={section} /> */}
         {TIME_SECTIONS.map((section) => {
           // Get habits for this section
           const sectionHabits = habits.filter(
-            (h) => h.timeSection === section.id
+            (h) => h.timeSection === section.id,
           );
           // Get tasks for this section
           const sectionTasks = tasksBySection[section.id] || [];
@@ -179,47 +214,63 @@ export default function OverviewScreen() {
                 />
               </View>
 
+              {sectionHabits.map((habit) => (
+                <View key={habit.id}>
+                  <TouchableOpacity
+                    style={styles.habitRow}
+                    onPress={() => toggleHabitToday(habit.id)}
+                  >
+                    <View
+                      style={[
+                        styles.checkCircle,
+                        wasCompletedToday(habit) && styles.checkCircleDone,
+                      ]}
+                    >
+                      {wasCompletedToday(habit) && (
+                        <Text style={styles.checkMark}>✓</Text>
+                      )}
+                    </View>
+
+                    <Text style={styles.habitIcon}>{habit.icon}</Text>
+
+                    <View style={styles.habitInfo}>
+                      <Text
+                        style={[
+                          styles.habitTitle,
+                          wasCompletedToday(habit) && styles.habitTitleDone,
+                        ]}
+                      >
+                        {habit.title}
+                      </Text>
+
+                      <Text style={styles.habitMeta}>
+                        🔥 {habit.streak} streak · +{habit.xpReward} XP
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <View style={styles.heatmapRow}>
+                    {weekDates.map((date) => (
+                      <View
+                        key={date}
+                        style={[
+                          styles.heatmapCell,
+                          wasCompletedOn(habit, date) &&
+                            styles.heatmapCompleted,
+                        ]}
+                      />
+                    ))}
+                  </View>
+                </View>
+              ))}
+
               {/* Habits in this section */}
               {/* SPLIT INTO: <HabitRow habit={habit} onToggle={...} /> */}
               {sectionHabits.length === 0 && sectionTasks.length === 0 && (
-                <Text style={styles.emptyText}>No items yet. Add a habit or task!</Text>
+                <Text style={styles.emptyText}>
+                  No items yet. Add a habit or task!
+                </Text>
               )}
-
-              {sectionHabits.map((habit) => (
-                <TouchableOpacity
-                  key={habit.id}
-                  style={styles.habitRow}
-                  onPress={() => toggleHabitToday(habit.id)}
-                >
-                  {/* Check circle — filled if done today */}
-                  <View
-                    style={[
-                      styles.checkCircle,
-                      wasCompletedToday(habit) && styles.checkCircleDone,
-                    ]}
-                  >
-                    {wasCompletedToday(habit) && (
-                      <Text style={styles.checkMark}>✓</Text>
-                    )}
-                  </View>
-
-                  <Text style={styles.habitIcon}>{habit.icon}</Text>
-
-                  <View style={styles.habitInfo}>
-                    <Text
-                      style={[
-                        styles.habitTitle,
-                        wasCompletedToday(habit) && styles.habitTitleDone,
-                      ]}
-                    >
-                      {habit.title}
-                    </Text>
-                    <Text style={styles.habitMeta}>
-                      🔥 {habit.streak} streak · +{habit.xpReward} XP
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
 
               {/* Tasks in this section */}
               {/* SPLIT INTO: <TaskRow task={task} onToggle={...} /> */}
@@ -248,7 +299,7 @@ export default function OverviewScreen() {
                     {task.title}
                   </Text>
                   {/* Priority badge */}
-                  {task.priority === 'high' && (
+                  {task.priority === "high" && (
                     <View style={styles.priorityBadge}>
                       <Text style={styles.priorityText}>!</Text>
                     </View>
@@ -260,13 +311,13 @@ export default function OverviewScreen() {
               <View style={styles.addButtonRow}>
                 <TouchableOpacity
                   style={styles.addBtn}
-                  onPress={() => openModal('habit', section.id)}
+                  onPress={() => openModal("habit", section.id)}
                 >
                   <Text style={styles.addBtnText}>+ Habit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.addBtn, styles.addTaskBtn]}
-                  onPress={() => openModal('task', section.id)}
+                  onPress={() => openModal("task", section.id)}
                 >
                   <Text style={styles.addBtnText}>+ Task</Text>
                 </TouchableOpacity>
@@ -283,7 +334,7 @@ export default function OverviewScreen() {
           SPLIT INTO: <AddHabitModal visible={...} onClose={...} />
           ============================================================ */}
       <Modal
-        visible={modalType === 'habit'}
+        visible={modalType === "habit"}
         transparent
         animationType="slide"
         onRequestClose={closeModal}
@@ -292,7 +343,7 @@ export default function OverviewScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>New Habit</Text>
             <Text style={styles.modalSection}>
-              Section:{' '}
+              Section:{" "}
               {TIME_SECTIONS.find((s) => s.id === activeSection)?.label}
             </Text>
 
@@ -330,7 +381,7 @@ export default function OverviewScreen() {
           SPLIT INTO: <AddTaskModal visible={...} onClose={...} />
           ============================================================ */}
       <Modal
-        visible={modalType === 'task'}
+        visible={modalType === "task"}
         transparent
         animationType="slide"
         onRequestClose={closeModal}
@@ -339,7 +390,7 @@ export default function OverviewScreen() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>New Task</Text>
             <Text style={styles.modalSection}>
-              Section:{' '}
+              Section:{" "}
               {TIME_SECTIONS.find((s) => s.id === activeSection)?.label}
             </Text>
 
@@ -354,7 +405,7 @@ export default function OverviewScreen() {
             {/* Priority picker — simple buttons */}
             <Text style={styles.inputLabel}>Priority:</Text>
             <View style={styles.priorityRow}>
-              {['low', 'normal', 'high'].map((p) => (
+              {["low", "normal", "high"].map((p) => (
                 <TouchableOpacity
                   key={p}
                   style={[
@@ -402,15 +453,15 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.md,
   },
   greeting: {
-    fontSize: FONTS.xl,
-    color: COLORS.textPrimary,
-    fontWeight: '700',
-  },
-  dateLabel: {
-    fontSize: FONTS.sm,
+    ontSize: FONTS.sm,
     color: COLORS.textSecondary,
     marginTop: SPACING.xs,
     marginBottom: SPACING.md,
+  },
+  dateLabel: {
+    fontSize: FONTS.xl,
+    color: COLORS.textPrimary,
+    fontWeight: "700",
   },
 
   // XP Bar
@@ -418,8 +469,8 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
   },
   xpLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: SPACING.xs,
   },
   xpLabel: {
@@ -430,48 +481,13 @@ const styles = StyleSheet.create({
     height: 12,
     backgroundColor: COLORS.xpBarBg,
     borderRadius: RADIUS.full,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   xpBarFill: {
-    height: '100%',
+    height: "100%",
     backgroundColor: COLORS.xpBar,
     borderRadius: RADIUS.full,
     // TODO: Add animated width transition using Animated.View
-  },
-
-  // Task Circle
-  circleContainer: {
-    alignItems: 'center',
-    marginVertical: SPACING.lg,
-  },
-  circlePlaceholder: {
-    // TODO: Replace with actual SVG circle using react-native-svg
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 4,
-    borderColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.card,
-  },
-  circleNumber: {
-    fontSize: FONTS.xl,
-    color: COLORS.textPrimary,
-    fontWeight: '700',
-  },
-  circleLabel: {
-    fontSize: FONTS.sm,
-    color: COLORS.textSecondary,
-  },
-  circleSub: {
-    fontSize: FONTS.xs,
-    color: COLORS.textMuted,
-  },
-  circleCaption: {
-    marginTop: SPACING.sm,
-    color: COLORS.textSecondary,
-    fontSize: FONTS.sm,
   },
 
   // Time Section Cards
@@ -487,8 +503,8 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.sm,
   },
   sectionAccent: {
@@ -502,7 +518,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FONTS.lg,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
   },
   sectionTime: {
@@ -512,14 +528,14 @@ const styles = StyleSheet.create({
   emptyText: {
     color: COLORS.textMuted,
     fontSize: FONTS.sm,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     paddingVertical: SPACING.sm,
   },
 
   // Habit Row
   habitRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: SPACING.sm,
     gap: SPACING.sm,
   },
@@ -529,8 +545,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   checkCircleDone: {
     backgroundColor: COLORS.primary,
@@ -539,7 +555,7 @@ const styles = StyleSheet.create({
   checkMark: {
     color: COLORS.textPrimary,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   habitIcon: {
     fontSize: FONTS.md,
@@ -553,7 +569,7 @@ const styles = StyleSheet.create({
   },
   habitTitleDone: {
     color: COLORS.textMuted,
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
   },
   habitMeta: {
     fontSize: FONTS.xs,
@@ -563,8 +579,8 @@ const styles = StyleSheet.create({
 
   // Task Row
   taskRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: SPACING.sm,
     gap: SPACING.sm,
   },
@@ -574,8 +590,8 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
     borderWidth: 2,
     borderColor: COLORS.textMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   taskCheckDone: {
     backgroundColor: COLORS.success,
@@ -588,25 +604,25 @@ const styles = StyleSheet.create({
   },
   taskTitleDone: {
     color: COLORS.textMuted,
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
   },
   priorityBadge: {
     backgroundColor: COLORS.danger,
     borderRadius: RADIUS.full,
     width: 18,
     height: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   priorityText: {
     color: COLORS.textPrimary,
     fontSize: FONTS.xs,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   // Add Buttons
   addButtonRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.sm,
     marginTop: SPACING.sm,
   },
@@ -616,7 +632,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.primary,
-    alignItems: 'center',
+    alignItems: "center",
   },
   addTaskBtn: {
     borderColor: COLORS.success,
@@ -629,8 +645,8 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end', // Slides up from bottom
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end", // Slides up from bottom
   },
   modalCard: {
     backgroundColor: COLORS.card,
@@ -642,7 +658,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: FONTS.xl,
     color: COLORS.textPrimary,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: SPACING.xs,
   },
   modalSection: {
@@ -666,7 +682,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   priorityRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.sm,
     marginBottom: SPACING.md,
   },
@@ -676,7 +692,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
-    alignItems: 'center',
+    alignItems: "center",
   },
   priorityBtnActive: {
     backgroundColor: COLORS.primary,
@@ -685,10 +701,10 @@ const styles = StyleSheet.create({
   priorityBtnText: {
     color: COLORS.textPrimary,
     fontSize: FONTS.sm,
-    textTransform: 'capitalize',
+    textTransform: "capitalize",
   },
   modalButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.sm,
     marginTop: SPACING.sm,
   },
@@ -698,7 +714,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelBtnText: {
     color: COLORS.textSecondary,
@@ -709,11 +725,29 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.md,
     backgroundColor: COLORS.primary,
-    alignItems: 'center',
+    alignItems: "center",
   },
   saveBtnText: {
     color: COLORS.textPrimary,
     fontSize: FONTS.md,
-    fontWeight: '600',
+    fontWeight: "600",
+  },
+
+  heatmapRow: {
+    flexDirection: "row",
+    gap: 4,
+    marginLeft: 60,
+    marginBottom: 8,
+  },
+
+  heatmapCell: {
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    backgroundColor: "#2A2A2A",
+  },
+
+  heatmapCompleted: {
+    backgroundColor: COLORS.success,
   },
 });

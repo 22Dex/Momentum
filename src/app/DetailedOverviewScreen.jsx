@@ -16,29 +16,29 @@
 //  - <HabitHistoryCard habit={habit} weekDates={[]} /> — habit + weekly dots
 //  - <DetailedTaskList tasks={[]} /> — full task list with filters
 //  - <SectionFilterBar /> — filter by morning/afternoon/evening/night
-// ============================================================
 
-import React, { useState } from 'react';
+import { useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
   SafeAreaView,
-} from 'react-native';
-import { useAppState } from '../hooks/useAppState';
-import { COLORS, FONTS, SPACING, RADIUS } from '../theme';
-import { TIME_SECTIONS } from '../data/appData';
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Calendar } from "react-native-calendars";
+import { TIME_SECTIONS } from "../data/appData";
+import { useAppState } from "../hooks/useAppState";
+import { COLORS, FONTS, RADIUS, SPACING } from "../theme/Themes";
+
 import {
   getCurrentWeekDates,
   getShortDayName,
-  getTodayString,
-  wasCompletedOn,
-  getTotalXP,
-  calculateStreak,
   getTaskProgress,
-} from '../utils/helpers';
+  getTodayString,
+  getTotalXP,
+  wasCompletedOn
+} from "../utils/helpers";
 
 // ============================================================
 // MAIN COMPONENT
@@ -63,16 +63,14 @@ export default function DetailedOverviewScreen() {
 
   // Stats for the summary bar
   const totalXP = getTotalXP(habits);
-  const { completed: completedTasksCount, total: totalTasksCount } = getTaskProgress(tasks);
-  const bestStreak = habits.reduce(
-    (best, h) => Math.max(best, h.streak),
-    0
-  );
+  const { completed: completedTasksCount, total: totalTasksCount } =
+    getTaskProgress(tasks);
+  const bestStreak = habits.reduce((best, h) => Math.max(best, h.streak), 0);
 
   // Tasks filtered by selected day
   // (A real app would filter by dueDate; here we show all for simplicity)
   const filteredTasks = tasks.filter((t) =>
-    activeFilter ? t.timeSection === activeFilter : true
+    activeFilter ? t.timeSection === activeFilter : true,
   );
 
   // ============================================================
@@ -81,7 +79,6 @@ export default function DetailedOverviewScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-
         {/* ---- PAGE TITLE ---- */}
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitle}>Detailed View</Text>
@@ -95,54 +92,24 @@ export default function DetailedOverviewScreen() {
             TODO: Use a library like react-native-calendars for a full
             month calendar. This is a simple 7-day strip for now.
             ============================================================ */}
-        <View style={styles.calendarStrip}>
-          {weekDates.map((date) => {
-            const isToday = date === today;
-            const isSelected = date === selectedDate;
-
-            // Does any habit have a completion on this date?
-            const hasActivity = habits.some((h) =>
-              h.completedDates.includes(date)
-            );
-
-            return (
-              <TouchableOpacity
-                key={date}
-                style={[
-                  styles.dayButton,
-                  isSelected && styles.dayButtonSelected,
-                  isToday && !isSelected && styles.dayButtonToday,
-                ]}
-                onPress={() => setSelectedDate(date)}
-              >
-                <Text
-                  style={[
-                    styles.dayName,
-                    isSelected && styles.dayTextSelected,
-                  ]}
-                >
-                  {getShortDayName(date)}
-                </Text>
-                <Text
-                  style={[
-                    styles.dayNumber,
-                    isSelected && styles.dayTextSelected,
-                  ]}
-                >
-                  {new Date(date + 'T00:00:00').getDate()}
-                </Text>
-                {/* Activity dot below the number */}
-                {hasActivity && (
-                  <View
-                    style={[
-                      styles.activityDot,
-                      isSelected && styles.activityDotSelected,
-                    ]}
-                  />
-                )}
-              </TouchableOpacity>
-            );
-          })}
+        <View style={styles.calendarContainer}>
+          <Calendar
+            onDayPress={(day) => setSelectedDate(day.dateString)}
+            markedDates={{
+              [selectedDate]: {
+                selected: true,
+                selectedColor: COLORS.primary,
+              },
+            }}
+            theme={{
+              todayTextColor: COLORS.primary,
+              selectedDayBackgroundColor: COLORS.primary,
+              calendarBackground: COLORS.card,
+              dayTextColor: COLORS.textPrimary,
+              monthTextColor: COLORS.textPrimary,
+              arrowColor: COLORS.primary,
+            }}
+          />
         </View>
 
         {/* ============================================================
@@ -198,9 +165,7 @@ export default function DetailedOverviewScreen() {
                 activeFilter === section.id && { borderColor: section.color },
               ]}
               onPress={() =>
-                setActiveFilter(
-                  activeFilter === section.id ? null : section.id
-                )
+                setActiveFilter(activeFilter === section.id ? null : section.id)
               }
             >
               <Text style={styles.filterBtnText}>
@@ -218,12 +183,14 @@ export default function DetailedOverviewScreen() {
         <Text style={styles.sectionHeader}>Habits This Week</Text>
 
         {filteredHabits.length === 0 && (
-          <Text style={styles.emptyText}>No habits yet. Add some on the Overview tab!</Text>
+          <Text style={styles.emptyText}>
+            No habits yet. Add some on the Overview tab!
+          </Text>
         )}
 
         {filteredHabits.map((habit) => {
           const sectionInfo = TIME_SECTIONS.find(
-            (s) => s.id === habit.timeSection
+            (s) => s.id === habit.timeSection,
           );
 
           return (
@@ -234,7 +201,7 @@ export default function DetailedOverviewScreen() {
                 <View style={styles.habitCardInfo}>
                   <Text style={styles.habitCardTitle}>{habit.title}</Text>
                   <Text style={styles.habitCardMeta}>
-                    {sectionInfo?.emoji} {sectionInfo?.label} · 🔥{' '}
+                    {sectionInfo?.emoji} {sectionInfo?.label} · 🔥{" "}
                     {habit.streak} day streak · +{habit.xpReward} XP
                   </Text>
                 </View>
@@ -275,7 +242,8 @@ export default function DetailedOverviewScreen() {
                       {
                         width: `${Math.min(
                           100,
-                          (habit.completedDates.length / habit.goalTarget) * 100
+                          (habit.completedDates.length / habit.goalTarget) *
+                            100,
                         )}%`,
                       },
                     ]}
@@ -298,7 +266,7 @@ export default function DetailedOverviewScreen() {
 
         {filteredTasks.map((task) => {
           const sectionInfo = TIME_SECTIONS.find(
-            (s) => s.id === task.timeSection
+            (s) => s.id === task.timeSection,
           );
           return (
             <View key={task.id} style={styles.taskCard}>
@@ -329,7 +297,7 @@ export default function DetailedOverviewScreen() {
                     Priority: {task.priority}
                   </Text>
                   <Text style={styles.taskMetaText}>
-                    {task.isCompleted ? '✅ Done' : '⏳ Pending'}
+                    {task.isCompleted ? "✅ Done" : "⏳ Pending"}
                   </Text>
                 </View>
               </View>
@@ -362,7 +330,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: FONTS.xxl,
     color: COLORS.textPrimary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   pageSubtitle: {
     fontSize: FONTS.sm,
@@ -372,16 +340,16 @@ const styles = StyleSheet.create({
 
   // Calendar Strip
   calendarStrip: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
     padding: SPACING.sm,
     marginBottom: SPACING.md,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   dayButton: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.md,
   },
@@ -400,7 +368,7 @@ const styles = StyleSheet.create({
   dayNumber: {
     fontSize: FONTS.md,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   dayTextSelected: {
     color: COLORS.textPrimary,
@@ -418,21 +386,21 @@ const styles = StyleSheet.create({
 
   // Stats Bar
   statsBar: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     marginBottom: SPACING.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statItem: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statValue: {
     fontSize: FONTS.md,
     color: COLORS.textPrimary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   statLabel: {
     fontSize: FONTS.xs,
@@ -474,14 +442,14 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: FONTS.lg,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: SPACING.sm,
     marginTop: SPACING.sm,
   },
   emptyText: {
     color: COLORS.textMuted,
     fontSize: FONTS.sm,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     marginBottom: SPACING.md,
   },
 
@@ -495,8 +463,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cardBorder,
   },
   habitCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: SPACING.sm,
     marginBottom: SPACING.sm,
   },
@@ -509,7 +477,7 @@ const styles = StyleSheet.create({
   habitCardTitle: {
     fontSize: FONTS.md,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   habitCardMeta: {
     fontSize: FONTS.xs,
@@ -519,12 +487,12 @@ const styles = StyleSheet.create({
 
   // 7-day dot grid
   dotGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: SPACING.sm,
   },
   dotColumn: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 4,
   },
   dotDayLabel: {
@@ -550,8 +518,8 @@ const styles = StyleSheet.create({
 
   // Goal progress mini bar
   goalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.sm,
   },
   goalLabel: {
@@ -564,10 +532,10 @@ const styles = StyleSheet.create({
     height: 6,
     backgroundColor: COLORS.cardBorder,
     borderRadius: RADIUS.full,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   goalBarFill: {
-    height: '100%',
+    height: "100%",
     backgroundColor: COLORS.primaryLight,
     borderRadius: RADIUS.full,
   },
@@ -577,8 +545,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
     marginBottom: SPACING.sm,
-    flexDirection: 'row',
-    overflow: 'hidden',
+    flexDirection: "row",
+    overflow: "hidden",
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
   },
@@ -592,20 +560,27 @@ const styles = StyleSheet.create({
   taskCardTitle: {
     fontSize: FONTS.md,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: SPACING.xs,
   },
   taskTitleDone: {
     color: COLORS.textMuted,
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
   },
   taskCardMeta: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.md,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   taskMetaText: {
     fontSize: FONTS.xs,
     color: COLORS.textMuted,
+  },
+  calendarContainer: {
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.sm,
+    marginBottom: SPACING.md,
+    overflow: "hidden",
   },
 });

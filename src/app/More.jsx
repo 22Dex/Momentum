@@ -33,55 +33,61 @@
 //  - <WeeklyReviewCard review={} /> — a past review card
 // ============================================================
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  TextInput,
-  SafeAreaView,
   Alert,
-} from 'react-native';
-import { useAppState } from '../hooks/useAppState';
-import { COLORS, FONTS, SPACING, RADIUS } from '../theme';
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useAppState } from "../hooks/useAppState";
+import { COLORS, FONTS, RADIUS, SPACING } from "../theme/Themes";
 import {
-  getTodayString,
   formatDateLabel,
-  getTotalFocusMinutes,
   formatTimer,
-} from '../utils/helpers';
+  getTodayString,
+  getTotalFocusMinutes,
+} from "../utils/helpers";
 
 // Tabs for this screen
 const TABS = [
-  { id: 'journal', label: '📓 Journal' },
-  { id: 'focus', label: '⏱ Focus' },
-  { id: 'review', label: '📋 Review' },
+  { id: "journal", label: "📓 Journal" },
+  { id: "focus", label: "⏱ Focus" },
+  { id: "review", label: "📋 Review" },
 ];
 
 // Mood options for the journal
 const MOODS = [
-  { id: 'great', emoji: '😄', label: 'Great' },
-  { id: 'good', emoji: '😊', label: 'Good' },
-  { id: 'okay', emoji: '😐', label: 'Okay' },
-  { id: 'bad', emoji: '😞', label: 'Bad' },
+  { id: "great", emoji: "😄", label: "Great" },
+  { id: "good", emoji: "😊", label: "Good" },
+  { id: "okay", emoji: "😐", label: "Okay" },
+  { id: "bad", emoji: "😞", label: "Bad" },
 ];
 
 // ============================================================
 // MAIN COMPONENT
 // ============================================================
 export default function ToolsScreen() {
-  const { journalEntries, addJournalEntry, focusSessions, addFocusSession, weeklyReviews, addWeeklyReview } =
-    useAppState();
+  const {
+    journalEntries,
+    addJournalEntry,
+    focusSessions,
+    addFocusSession,
+    weeklyReviews,
+    addWeeklyReview,
+  } = useAppState();
 
   // Active tab
-  const [activeTab, setActiveTab] = useState('journal');
+  const [activeTab, setActiveTab] = useState("journal");
 
   // ---- Journal state ----
-  const [journalMood, setJournalMood] = useState('good');
-  const [journalContent, setJournalContent] = useState('');
-  const [journalGratitude, setJournalGratitude] = useState('');
+  const [journalMood, setJournalMood] = useState("good");
+  const [journalContent, setJournalContent] = useState("");
+  const [journalGratitude, setJournalGratitude] = useState("");
 
   // ---- Focus Timer state ----
   const [focusDuration, setFocusDuration] = useState(25); // minutes
@@ -90,10 +96,11 @@ export default function ToolsScreen() {
   const timerRef = useRef(null); // Holds the interval reference
 
   // ---- Weekly Review state ----
-  const [reviewWins, setReviewWins] = useState('');
-  const [reviewImprovements, setReviewImprovements] = useState('');
-  const [reviewNextGoal, setReviewNextGoal] = useState('');
+  const [reviewWins, setReviewWins] = useState("");
+  const [reviewImprovements, setReviewImprovements] = useState("");
+  const [reviewNextGoal, setReviewNextGoal] = useState("");
   const [reviewRating, setReviewRating] = useState(3);
+  const [menu, setMenu] = useState(false);
 
   const today = getTodayString();
 
@@ -101,15 +108,17 @@ export default function ToolsScreen() {
   // Count how many days in a row you've journaled (ending today or yesterday)
   const journalStreak = (() => {
     if (journalEntries.length === 0) return 0;
-    const dates = [...new Set(journalEntries.map((e) => e.date))].sort().reverse();
+    const dates = [...new Set(journalEntries.map((e) => e.date))]
+      .sort()
+      .reverse();
     let streak = 0;
     let expected = today;
     for (const date of dates) {
       if (date === expected) {
         streak++;
-        const d = new Date(expected + 'T00:00:00');
+        const d = new Date(expected + "T00:00:00");
         d.setDate(d.getDate() - 1);
-        expected = d.toISOString().split('T')[0];
+        expected = d.toISOString().split("T")[0];
       } else {
         break;
       }
@@ -129,7 +138,10 @@ export default function ToolsScreen() {
             clearInterval(timerRef.current);
             setIsRunning(false);
             addFocusSession(focusDuration); // Save the session
-            Alert.alert('Session complete! 🎉', `You focused for ${focusDuration} minutes!`);
+            Alert.alert(
+              "Session complete! 🎉",
+              `You focused for ${focusDuration} minutes!`,
+            );
             return focusDuration * 60; // Reset timer
           }
           return prev - 1;
@@ -161,24 +173,24 @@ export default function ToolsScreen() {
   // ---- Journal save ----
   function handleSaveJournal() {
     if (!journalContent.trim()) {
-      Alert.alert('Oops!', 'Write something in your journal first!');
+      Alert.alert("Oops!", "Write something in your journal first!");
       return;
     }
     addJournalEntry({
       mood: journalMood,
-      moodEmoji: MOODS.find((m) => m.id === journalMood)?.emoji || '😊',
+      moodEmoji: MOODS.find((m) => m.id === journalMood)?.emoji || "😊",
       content: journalContent.trim(),
       gratitude: journalGratitude.trim(),
     });
-    setJournalContent('');
-    setJournalGratitude('');
-    Alert.alert('Saved! ✨', 'Journal entry saved.');
+    setJournalContent("");
+    setJournalGratitude("");
+    Alert.alert("Saved! ✨", "Journal entry saved.");
   }
 
   // ---- Weekly review save ----
   function handleSaveReview() {
     if (!reviewWins.trim()) {
-      Alert.alert('Oops!', 'Write at least one win for the week!');
+      Alert.alert("Oops!", "Write at least one win for the week!");
       return;
     }
     addWeeklyReview({
@@ -188,11 +200,11 @@ export default function ToolsScreen() {
       nextWeekGoal: reviewNextGoal.trim(),
       overallRating: reviewRating,
     });
-    setReviewWins('');
-    setReviewImprovements('');
-    setReviewNextGoal('');
+    setReviewWins("");
+    setReviewImprovements("");
+    setReviewNextGoal("");
     setReviewRating(3);
-    Alert.alert('Review saved! 📋', 'Great job reflecting on your week.');
+    Alert.alert("Review saved! 📋", "Great job reflecting on your week.");
   }
 
   // ============================================================
@@ -200,7 +212,6 @@ export default function ToolsScreen() {
   // ============================================================
   return (
     <SafeAreaView style={styles.safeArea}>
-
       {/* ---- TAB BAR ---- */}
       {/* SPLIT INTO: <TabBar /> */}
       <View style={styles.tabBar}>
@@ -223,11 +234,10 @@ export default function ToolsScreen() {
       </View>
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-
         {/* ============================================================
             JOURNAL TAB
             ============================================================ */}
-        {activeTab === 'journal' && (
+        {activeTab === "journal" && (
           <View>
             {/* Streak + Focus Minutes row */}
             {/* SPLIT INTO: <StreakBadge /> */}
@@ -281,7 +291,9 @@ export default function ToolsScreen() {
               />
 
               {/* Gratitude section */}
-              <Text style={styles.inputLabel}>What are you grateful for? (optional)</Text>
+              <Text style={styles.inputLabel}>
+                What are you grateful for? (optional)
+              </Text>
               <TextInput
                 style={[styles.input, styles.inputMultilineSmall]}
                 placeholder="I'm grateful for..."
@@ -292,7 +304,10 @@ export default function ToolsScreen() {
                 numberOfLines={3}
               />
 
-              <TouchableOpacity style={styles.saveButton} onPress={handleSaveJournal}>
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveJournal}
+              >
                 <Text style={styles.saveButtonText}>Save Entry ✨</Text>
               </TouchableOpacity>
             </View>
@@ -307,7 +322,9 @@ export default function ToolsScreen() {
                 <View style={styles.entryHeader}>
                   <Text style={styles.entryEmoji}>{entry.moodEmoji}</Text>
                   <View>
-                    <Text style={styles.entryDate}>{formatDateLabel(entry.date)}</Text>
+                    <Text style={styles.entryDate}>
+                      {formatDateLabel(entry.date)}
+                    </Text>
                     <Text style={styles.entryMood}>{entry.mood}</Text>
                   </View>
                 </View>
@@ -328,7 +345,7 @@ export default function ToolsScreen() {
             FOCUS TAB
             SPLIT INTO: <FocusTimer /> + <FocusSessionList />
             ============================================================ */}
-        {activeTab === 'focus' && (
+        {activeTab === "focus" && (
           <View>
             {/* Focus minutes tracker */}
             <View style={styles.statsRow}>
@@ -339,16 +356,20 @@ export default function ToolsScreen() {
               </View>
               <View style={[styles.statCard, { flex: 1 }]}>
                 <Text style={styles.statEmoji}>🧘</Text>
-                <Text style={styles.statBigNumber}>{focusSessions.filter(s => s.isCompleted).length}</Text>
+                <Text style={styles.statBigNumber}>
+                  {focusSessions.filter((s) => s.isCompleted).length}
+                </Text>
                 <Text style={styles.statCardLabel}>Sessions Done</Text>
               </View>
             </View>
 
             {/* Timer display */}
             <View style={styles.timerCard}>
-              <Text style={styles.timerDisplay}>{formatTimer(secondsLeft)}</Text>
+              <Text style={styles.timerDisplay}>
+                {formatTimer(secondsLeft)}
+              </Text>
               <Text style={styles.timerSubtext}>
-                {isRunning ? '● Focusing...' : 'Ready to focus'}
+                {isRunning ? "● Focusing..." : "Ready to focus"}
               </Text>
 
               {/* Duration selector buttons */}
@@ -369,21 +390,15 @@ export default function ToolsScreen() {
 
               {/* Timer controls */}
               <View style={styles.timerControls}>
-                <TouchableOpacity
-                  style={styles.resetBtn}
-                  onPress={resetTimer}
-                >
+                <TouchableOpacity style={styles.resetBtn} onPress={resetTimer}>
                   <Text style={styles.resetBtnText}>Reset</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[
-                    styles.startBtn,
-                    isRunning && styles.pauseBtn,
-                  ]}
+                  style={[styles.startBtn, isRunning && styles.pauseBtn]}
                   onPress={() => setIsRunning((r) => !r)}
                 >
                   <Text style={styles.startBtnText}>
-                    {isRunning ? '⏸ Pause' : '▶ Start'}
+                    {isRunning ? "⏸ Pause" : "▶ Start"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -399,7 +414,9 @@ export default function ToolsScreen() {
                 <Text style={styles.sessionDuration}>
                   {session.durationMinutes} min
                 </Text>
-                <Text style={styles.sessionDate}>{formatDateLabel(session.date)}</Text>
+                <Text style={styles.sessionDate}>
+                  {formatDateLabel(session.date)}
+                </Text>
               </View>
             ))}
           </View>
@@ -409,14 +426,16 @@ export default function ToolsScreen() {
             WEEKLY REVIEW TAB
             SPLIT INTO: <WeeklyReviewForm /> + <WeeklyReviewCard />
             ============================================================ */}
-        {activeTab === 'review' && (
+        {activeTab === "review" && (
           <View>
             {/* Review form */}
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Weekly Review</Text>
               <Text style={styles.cardSubtitle}>Reflect on your week</Text>
 
-              <Text style={styles.inputLabel}>🏆 What went well this week?</Text>
+              <Text style={styles.inputLabel}>
+                🏆 What went well this week?
+              </Text>
               <TextInput
                 style={[styles.input, styles.inputMultilineSmall]}
                 placeholder="Your wins, achievements, proud moments..."
@@ -468,7 +487,10 @@ export default function ToolsScreen() {
                 ))}
               </View>
 
-              <TouchableOpacity style={styles.saveButton} onPress={handleSaveReview}>
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveReview}
+              >
                 <Text style={styles.saveButtonText}>Save Review 📋</Text>
               </TouchableOpacity>
             </View>
@@ -485,8 +507,8 @@ export default function ToolsScreen() {
                     Week of {formatDateLabel(review.weekStart)}
                   </Text>
                   <Text style={styles.reviewStars}>
-                    {'★'.repeat(review.overallRating)}
-                    {'☆'.repeat(5 - review.overallRating)}
+                    {"★".repeat(review.overallRating)}
+                    {"☆".repeat(5 - review.overallRating)}
                   </Text>
                 </View>
                 <Text style={styles.reviewLabel}>🏆 Wins</Text>
@@ -494,7 +516,9 @@ export default function ToolsScreen() {
                 {review.nextWeekGoal ? (
                   <>
                     <Text style={styles.reviewLabel}>🎯 Next week goal</Text>
-                    <Text style={styles.reviewContent}>{review.nextWeekGoal}</Text>
+                    <Text style={styles.reviewContent}>
+                      {review.nextWeekGoal}
+                    </Text>
                   </>
                 ) : null}
               </View>
@@ -519,7 +543,7 @@ const styles = StyleSheet.create({
 
   // Tab bar at top
   tabBar: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: COLORS.card,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.cardBorder,
@@ -527,7 +551,7 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     paddingVertical: SPACING.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   tabActive: {
     borderBottomWidth: 2,
@@ -539,7 +563,7 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     color: COLORS.primary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   container: {
@@ -550,7 +574,7 @@ const styles = StyleSheet.create({
 
   // Stat cards row
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.sm,
     marginBottom: SPACING.md,
   },
@@ -559,7 +583,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
   },
@@ -570,12 +594,12 @@ const styles = StyleSheet.create({
   statBigNumber: {
     fontSize: FONTS.xxl,
     color: COLORS.textPrimary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   statCardLabel: {
     fontSize: FONTS.xs,
     color: COLORS.textMuted,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   // Card
@@ -590,7 +614,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: FONTS.lg,
     color: COLORS.textPrimary,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 2,
   },
   cardSubtitle: {
@@ -618,22 +642,22 @@ const styles = StyleSheet.create({
   },
   inputMultiline: {
     height: 120,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   inputMultilineSmall: {
     height: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
 
   // Mood selector
   moodRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.sm,
     marginBottom: SPACING.sm,
   },
   moodBtn: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.md,
     borderWidth: 1,
@@ -642,7 +666,7 @@ const styles = StyleSheet.create({
   },
   moodBtnActive: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + '33',
+    backgroundColor: COLORS.primary + "33",
   },
   moodEmoji: {
     fontSize: FONTS.xl,
@@ -658,20 +682,20 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderRadius: RADIUS.md,
     paddingVertical: SPACING.md,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: SPACING.sm,
   },
   saveButtonText: {
     color: COLORS.textPrimary,
     fontSize: FONTS.md,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   // Section title
   sectionTitle: {
     fontSize: FONTS.lg,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: SPACING.sm,
     marginTop: SPACING.sm,
   },
@@ -686,8 +710,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cardBorder,
   },
   entryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.sm,
     marginBottom: SPACING.sm,
   },
@@ -697,12 +721,12 @@ const styles = StyleSheet.create({
   entryDate: {
     fontSize: FONTS.sm,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   entryMood: {
     fontSize: FONTS.xs,
     color: COLORS.textMuted,
-    textTransform: 'capitalize',
+    textTransform: "capitalize",
   },
   entryContent: {
     fontSize: FONTS.sm,
@@ -720,7 +744,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.xl,
     padding: SPACING.xl,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
@@ -728,8 +752,8 @@ const styles = StyleSheet.create({
   timerDisplay: {
     fontSize: 64,
     color: COLORS.textPrimary,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
+    fontWeight: "700",
+    fontVariant: ["tabular-nums"],
     letterSpacing: 4,
   },
   timerSubtext: {
@@ -739,7 +763,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   durationRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.sm,
     marginBottom: SPACING.lg,
   },
@@ -759,9 +783,9 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sm,
   },
   timerControls: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.sm,
-    width: '100%',
+    width: "100%",
   },
   resetBtn: {
     flex: 1,
@@ -769,7 +793,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
-    alignItems: 'center',
+    alignItems: "center",
   },
   resetBtnText: {
     color: COLORS.textSecondary,
@@ -780,7 +804,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.md,
     backgroundColor: COLORS.success,
-    alignItems: 'center',
+    alignItems: "center",
   },
   pauseBtn: {
     backgroundColor: COLORS.warning,
@@ -788,13 +812,13 @@ const styles = StyleSheet.create({
   startBtnText: {
     color: COLORS.textPrimary,
     fontSize: FONTS.md,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   // Focus session row
   sessionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.sm,
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.md,
@@ -809,7 +833,7 @@ const styles = StyleSheet.create({
   sessionDuration: {
     fontSize: FONTS.md,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
   },
   sessionDate: {
@@ -819,7 +843,7 @@ const styles = StyleSheet.create({
 
   // Weekly review
   starRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.sm,
     marginBottom: SPACING.md,
   },
@@ -839,15 +863,15 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cardBorder,
   },
   reviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: SPACING.sm,
   },
   reviewDate: {
     fontSize: FONTS.sm,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   reviewStars: {
     fontSize: FONTS.md,

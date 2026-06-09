@@ -22,20 +22,20 @@
 //  - <CompletedGoalsList goals={[]} /> — section for finished goals
 // ============================================================
 
-import React, { useState } from 'react';
+import { useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  TextInput,
   Modal,
   SafeAreaView,
-} from 'react-native';
-import { useAppState } from '../hooks/useAppState';
-import { COLORS, FONTS, SPACING, RADIUS } from '../theme';
-import { getXPPercent, getTotalXP } from '../utils/helpers';
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useAppState } from "../hooks/useAppState";
+import { COLORS, FONTS, RADIUS, SPACING } from "../theme/Themes";
+import { getXPPercent } from "../utils/helpers";
 
 // ---- LEVEL SYSTEM ----
 // Simple formula: every 100 XP = 1 level
@@ -62,10 +62,10 @@ export default function ProgressScreen() {
 
   // Modal state
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newGoalTitle, setNewGoalTitle] = useState('');
-  const [newGoalDescription, setNewGoalDescription] = useState('');
-  const [newGoalTarget, setNewGoalTarget] = useState('100');
-  const [newGoalReward, setNewGoalReward] = useState('');
+  const [newGoalTitle, setNewGoalTitle] = useState("");
+  const [newGoalDescription, setNewGoalDescription] = useState("");
+  const [newGoalTarget, setNewGoalTarget] = useState("100");
+  const [newGoalReward, setNewGoalReward] = useState("");
 
   // Separate active goals from completed ones
   const activeGoals = goals.filter((g) => !g.isCompleted);
@@ -86,10 +86,10 @@ export default function ProgressScreen() {
       reward: newGoalReward.trim(),
     });
     setShowAddModal(false);
-    setNewGoalTitle('');
-    setNewGoalDescription('');
-    setNewGoalTarget('100');
-    setNewGoalReward('');
+    setNewGoalTitle("");
+    setNewGoalDescription("");
+    setNewGoalTarget("100");
+    setNewGoalReward("");
   }
 
   // ============================================================
@@ -98,7 +98,6 @@ export default function ProgressScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-
         {/* ---- PAGE TITLE ---- */}
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitle}>Progress</Text>
@@ -173,7 +172,9 @@ export default function ProgressScreen() {
                 <View style={styles.goalTitleArea}>
                   <Text style={styles.goalTitle}>{goal.title}</Text>
                   {goal.description ? (
-                    <Text style={styles.goalDescription}>{goal.description}</Text>
+                    <Text style={styles.goalDescription}>
+                      {goal.description}
+                    </Text>
                   ) : null}
                 </View>
                 <Text style={styles.goalPercent}>{percent}%</Text>
@@ -238,7 +239,10 @@ export default function ProgressScreen() {
               🏆 Completed Goals
             </Text>
             {completedGoals.map((goal) => (
-              <View key={goal.id} style={[styles.goalCard, styles.completedGoalCard]}>
+              <View
+                key={goal.id}
+                style={[styles.goalCard, styles.completedGoalCard]}
+              >
                 <View style={styles.completedBadge}>
                   <Text style={styles.completedBadgeText}>COMPLETE</Text>
                 </View>
@@ -343,7 +347,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: FONTS.xxl,
     color: COLORS.textPrimary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   pageSubtitle: {
     fontSize: FONTS.sm,
@@ -357,8 +361,8 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     marginBottom: SPACING.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.primary,
@@ -368,13 +372,13 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   levelNumber: {
     fontSize: FONTS.xl,
     color: COLORS.textPrimary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   levelLabel: {
     fontSize: FONTS.xs,
@@ -384,14 +388,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   levelTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: SPACING.xs,
   },
   levelTitle: {
     fontSize: FONTS.lg,
     color: COLORS.textPrimary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   totalXPText: {
     fontSize: FONTS.sm,
@@ -401,11 +405,11 @@ const styles = StyleSheet.create({
     height: 8,
     backgroundColor: COLORS.cardBorder,
     borderRadius: RADIUS.full,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: SPACING.xs,
   },
   levelBarFill: {
-    height: '100%',
+    height: "100%",
     backgroundColor: COLORS.xpBar,
     borderRadius: RADIUS.full,
   },
@@ -416,15 +420,15 @@ const styles = StyleSheet.create({
 
   // Section row
   sectionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: SPACING.sm,
   },
   sectionTitle: {
     fontSize: FONTS.lg,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   addGoalBtn: {
     backgroundColor: COLORS.primary,
@@ -435,7 +439,7 @@ const styles = StyleSheet.create({
   addGoalBtnText: {
     color: COLORS.textPrimary,
     fontSize: FONTS.sm,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   // Empty state
@@ -443,11 +447,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
     padding: SPACING.xl,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
   },
   emptyEmoji: {
     fontSize: 40,
@@ -456,13 +460,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: FONTS.lg,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: SPACING.xs,
   },
   emptySubtitle: {
     fontSize: FONTS.sm,
     color: COLORS.textMuted,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   // Goal Card
@@ -479,9 +483,9 @@ const styles = StyleSheet.create({
     borderColor: COLORS.success,
   },
   goalCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: SPACING.sm,
   },
   goalTitleArea: {
@@ -491,7 +495,7 @@ const styles = StyleSheet.create({
   goalTitle: {
     fontSize: FONTS.md,
     color: COLORS.textPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   goalDescription: {
     fontSize: FONTS.sm,
@@ -501,17 +505,17 @@ const styles = StyleSheet.create({
   goalPercent: {
     fontSize: FONTS.lg,
     color: COLORS.primary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   goalBarBg: {
     height: 10,
     backgroundColor: COLORS.cardBorder,
     borderRadius: RADIUS.full,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: SPACING.xs,
   },
   goalBarFill: {
-    height: '100%',
+    height: "100%",
     backgroundColor: COLORS.primary,
     borderRadius: RADIUS.full,
   },
@@ -529,7 +533,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   goalActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.sm,
     marginTop: SPACING.xs,
   },
@@ -537,19 +541,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.md,
-    backgroundColor: COLORS.primaryLight + '33', // 20% opacity
+    backgroundColor: COLORS.primaryLight + "33", // 20% opacity
     borderWidth: 1,
     borderColor: COLORS.primary,
   },
   addXPBtnText: {
     color: COLORS.primaryLight,
     fontSize: FONTS.sm,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   deleteBtn: {
-    marginLeft: 'auto',
+    marginLeft: "auto",
     borderColor: COLORS.danger,
-    backgroundColor: COLORS.danger + '22',
+    backgroundColor: COLORS.danger + "22",
   },
   deleteBtnText: {
     color: COLORS.danger,
@@ -557,8 +561,8 @@ const styles = StyleSheet.create({
 
   // Completed badge
   completedBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: COLORS.success + '33',
+    alignSelf: "flex-start",
+    backgroundColor: COLORS.success + "33",
     borderRadius: RADIUS.sm,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
@@ -567,15 +571,15 @@ const styles = StyleSheet.create({
   completedBadgeText: {
     color: COLORS.success,
     fontSize: FONTS.xs,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 1,
   },
 
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
   },
   modalCard: {
     backgroundColor: COLORS.card,
@@ -587,7 +591,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: FONTS.xl,
     color: COLORS.textPrimary,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: SPACING.md,
   },
   input: {
@@ -602,10 +606,10 @@ const styles = StyleSheet.create({
   },
   inputMultiline: {
     height: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   modalButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: SPACING.sm,
     marginTop: SPACING.sm,
   },
@@ -615,7 +619,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelBtnText: {
     color: COLORS.textSecondary,
@@ -626,11 +630,11 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.md,
     backgroundColor: COLORS.primary,
-    alignItems: 'center',
+    alignItems: "center",
   },
   saveBtnText: {
     color: COLORS.textPrimary,
     fontSize: FONTS.md,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

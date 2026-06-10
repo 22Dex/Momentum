@@ -1,56 +1,178 @@
-# Welcome to your Expo app 👋
+# 🚀 Momentum
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> Build momentum. Stay consistent. Become better.
 
-## Get started
+---
 
-1. Install dependencies
+## 📱 What is Momentum?
 
-   ```bash
-   npm install
-   ```
+Momentum is a productivity and habit-tracking app designed to help users stay consistent with their daily goals.
 
-2. Start the app
+Instead of overwhelming to-do lists, Momentum focuses on:
 
-   ```bash
-   npx expo start
-   ```
+✅ Daily Habits  
+✅ Tasks & Priorities  
+✅ XP & Progress Tracking  
+✅ Streak Building  
+✅ Weekly Planning  
+✅ Visual Progress
 
-In the output, you'll find options to open the app in a
+Every completed action earns XP, helping users level up their life one day at a time.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+# ✨ Features
 
-## Get a fresh project
+## 🏠 Home Dashboard
 
-When you're ready, run:
+The main overview screen includes:
 
-```bash
-npm run reset-project
-```
+- ⚡ Daily XP Progress Bar
+- 🎯 Task Completion Gauge
+- 🌅 Morning Section
+- ☀️ Afternoon Section
+- 🌆 Evening Section
+- 🌙 Night Section
+- ➕ Quick Add Habits
+- ➕ Quick Add Tasks
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Everything is organized by time of day to keep planning simple.
 
-### Other setup steps
+---
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## 🔥 Habit Tracking
 
-## Learn more
+Create habits and build consistency.
 
-To learn more about developing your project with Expo, look at the following resources:
+Each habit includes:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- 📝 Title
+- ⭐ XP Reward
+- 🔥 Streak Counter
+- ⏰ Time Section
 
-## Join the community
+Tap a habit once completed and instantly gain XP.
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## ✅ Task Management
+
+Tasks can be added alongside habits.
+
+Features:
+
+- 📌 Priorities
+  - 🟢 Low
+  - 🟡 Normal
+  - 🔴 High
+
+- ✔️ Completion Tracking
+- ⚡ XP Rewards
+
+---
+
+## 📊 Progress System
+
+Momentum gamifies productivity.
+
+Users earn XP by:
+
+- Completing habits
+- Finishing tasks
+- Maintaining streaks
+
+Progress is visualized through:
+
+- ⚡ XP Bar
+- 🎯 Completion Gauge
+- 📅 Weekly Progress
+- 🔥 Streak Tracking
+
+---
+
+## 📅 Calendar View
+
+See your progress over time.
+
+Features:
+
+- Weekly Overview
+- Future Planning
+- Habit Completion History
+- Productivity Tracking
+
+---
+
+## 🎨 Design Philosophy
+
+Momentum follows a:
+
+- 🌑 Dark Theme
+- 🎯 Minimal UI
+- ⚡ Fast Interactions
+- 📱 Mobile-First Design
+
+The goal is to keep users focused on action rather than complexity.
+
+---
+
+# 🧱 Project Structure
+
+```text
+
+---
+
+# 🏆 Core Goals
+
+Momentum aims to help users:
+
+🎯 Stay Consistent
+
+📈 Track Growth
+
+🔥 Build Streaks
+
+⚡ Increase Productivity
+
+🚀 Create Better Habits
+
+---
+
+# 🔮 Planned Features
+
+- 🎖️ Levels & Ranking System
+- 🏅 Achievement Badges
+- 📊 Advanced Analytics
+- ☁️ Cloud Sync
+- 👥 Friend Challenges
+- 🎨 Custom Themes
+- 📈 Monthly Reports
+- 🤖 AI Productivity Insights
+
+---
+
+# 🛠️ Built With
+
+- ⚛️ React Native
+- 🚀 Expo Router
+- 📱 Expo
+- 🎨 Custom Theme System
+- 💾 Local State Management
+
+---
+
+# 💡 Philosophy
+
+Small actions repeated daily create extraordinary results.
+
+Momentum exists to help users focus on consistency over perfection.
+
+> "Success is built through momentum."
+
+---
+
+## 🚀 BeBetter Software
+
+Built by **BeBetter**.
+
+Helping people become a little better every day.

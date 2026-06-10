@@ -33,9 +33,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAppState } from "../hooks/useAppState";
-import { COLORS, FONTS, RADIUS, SPACING } from "../theme/Themes";
-import { getXPPercent } from "../utils/helpers";
+import { useAppState } from "../../hooks/useAppState";
+import { COLORS, FONTS, RADIUS, SPACING } from "../../theme/Themes";
+import { getXPPercent } from "../../utils/helpers";
 
 // ---- LEVEL SYSTEM ----
 // Simple formula: every 100 XP = 1 level

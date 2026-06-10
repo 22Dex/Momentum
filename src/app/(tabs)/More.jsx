@@ -44,14 +44,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAppState } from "../hooks/useAppState";
-import { COLORS, FONTS, RADIUS, SPACING } from "../theme/Themes";
+import { useAppState } from "../../hooks/useAppState";
+import { COLORS, FONTS, RADIUS, SPACING } from "../../theme/Themes";
 import {
   formatDateLabel,
   formatTimer,
   getTodayString,
   getTotalFocusMinutes,
-} from "../utils/helpers";
+} from "../../utils/helpers";
 
 // Tabs for this screen
 const TABS = [

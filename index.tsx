@@ -7,7 +7,7 @@ import { COLORS } from "./src/theme/Themes";
 
 // Import your screen components
 import progress from "./src/app/DetailedOverviewScreen";
-import More from "./src/app/More";
+import More from "./src/app/(tabs)/More";
 import Habits from "./src/app/ProgressScreen";
 
 const Tab = createBottomTabNavigator();

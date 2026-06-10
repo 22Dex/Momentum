@@ -27,95 +27,128 @@ import {
   View,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { TIME_SECTIONS } from "../data/appData";
-import { useAppState } from "../hooks/useAppState";
-import { COLORS, FONTS, RADIUS, SPACING } from "../theme/Themes";
-
+import { TIME_SECTIONS } from "../../data/appData";
+import { useAppState } from "../../hooks/useAppState";
+import { COLORS, FONTS, RADIUS, SPACING } from "../../theme/Themes";
 import {
   getCurrentWeekDates,
   getShortDayName,
   getTaskProgress,
   getTodayString,
   getTotalXP,
-  wasCompletedOn
-} from "../utils/helpers";
+  wasCompletedOn,
+} from "../../utils/helpers";
 
-// ============================================================
-// MAIN COMPONENT
-// ============================================================
 export default function DetailedOverviewScreen() {
   const { habits, tasks } = useAppState();
 
-  // The 7 dates of the current week
   const weekDates = getCurrentWeekDates();
   const today = getTodayString();
 
-  // Which day is selected in the calendar strip
   const [selectedDate, setSelectedDate] = useState(today);
-
-  // Which section filter is active (null = show all)
   const [activeFilter, setActiveFilter] = useState(null);
+  const [calendarMode, setCalendarMode] = useState("week"); // "week" | "month"
 
-  // Filter habits by the active section filter
   const filteredHabits = activeFilter
     ? habits.filter((h) => h.timeSection === activeFilter)
     : habits;
 
-  // Stats for the summary bar
   const totalXP = getTotalXP(habits);
   const { completed: completedTasksCount, total: totalTasksCount } =
     getTaskProgress(tasks);
   const bestStreak = habits.reduce((best, h) => Math.max(best, h.streak), 0);
 
-  // Tasks filtered by selected day
-  // (A real app would filter by dueDate; here we show all for simplicity)
   const filteredTasks = tasks.filter((t) =>
-    activeFilter ? t.timeSection === activeFilter : true,
+    activeFilter ? t.timeSection === activeFilter : true
   );
 
-  // ============================================================
-  // RENDER
-  // ============================================================
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* ---- PAGE TITLE ---- */}
+
+        {/* PAGE HEADER */}
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitle}>Detailed View</Text>
           <Text style={styles.pageSubtitle}>Your habits & tasks in detail</Text>
         </View>
 
-        {/* ============================================================
-            WEEK CALENDAR STRIP
-            SPLIT INTO: <WeekCalendarStrip />
-            Shows Mon–Sun. Tap a day to select it.
-            TODO: Use a library like react-native-calendars for a full
-            month calendar. This is a simple 7-day strip for now.
-            ============================================================ */}
-        <View style={styles.calendarContainer}>
-          <Calendar
-            onDayPress={(day) => setSelectedDate(day.dateString)}
-            markedDates={{
-              [selectedDate]: {
-                selected: true,
-                selectedColor: COLORS.primary,
-              },
-            }}
-            theme={{
-              todayTextColor: COLORS.primary,
-              selectedDayBackgroundColor: COLORS.primary,
-              calendarBackground: COLORS.card,
-              dayTextColor: COLORS.textPrimary,
-              monthTextColor: COLORS.textPrimary,
-              arrowColor: COLORS.primary,
-            }}
-          />
+        {/* CALENDAR MODE TOGGLE */}
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity
+            style={[styles.toggleBtn, calendarMode === "week" && styles.toggleBtnActive]}
+            onPress={() => setCalendarMode("week")}
+          >
+            <Text style={[styles.toggleBtnText, calendarMode === "week" && styles.toggleBtnTextActive]}>
+              Week
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.toggleBtn, calendarMode === "month" && styles.toggleBtnActive]}
+            onPress={() => setCalendarMode("month")}
+          >
+            <Text style={[styles.toggleBtnText, calendarMode === "month" && styles.toggleBtnTextActive]}>
+              Month
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* ============================================================
-            STATS SUMMARY BAR
-            SPLIT INTO: <StatsSummaryBar />
-            ============================================================ */}
+        {/* WEEKLY STRIP */}
+        {calendarMode === "week" && (
+          <View style={styles.weekStrip}>
+            {weekDates.map((date) => {
+              const isSelected = date === selectedDate;
+              const isToday = date === today;
+              const hasActivity = habits.some((h) => wasCompletedOn(h, date));
+
+              return (
+                <TouchableOpacity
+                  key={date}
+                  style={[
+                    styles.dayButton,
+                    isSelected && styles.dayButtonSelected,
+                    isToday && !isSelected && styles.dayButtonToday,
+                  ]}
+                  onPress={() => setSelectedDate(date)}
+                >
+                  <Text style={[styles.dayName, isSelected && styles.dayTextSelected]}>
+                    {getShortDayName(date).charAt(0)}
+                  </Text>
+                  <Text style={[styles.dayNumber, isSelected && styles.dayTextSelected]}>
+                    {new Date(date).getDate()}
+                  </Text>
+                  {hasActivity && (
+                    <View style={[styles.activityDot, isSelected && styles.activityDotSelected]} />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        {/* MONTHLY CALENDAR */}
+        {calendarMode === "month" && (
+          <View style={styles.calendarContainer}>
+            <Calendar
+              onDayPress={(day) => setSelectedDate(day.dateString)}
+              markedDates={{
+                [selectedDate]: {
+                  selected: true,
+                  selectedColor: COLORS.primary,
+                },
+              }}
+              theme={{
+                todayTextColor: COLORS.primary,
+                selectedDayBackgroundColor: COLORS.primary,
+                calendarBackground: COLORS.card,
+                dayTextColor: COLORS.textPrimary,
+                monthTextColor: COLORS.textPrimary,
+                arrowColor: COLORS.primary,
+              }}
+            />
+          </View>
+        )}
+
+        {/* STATS BAR */}
         <View style={styles.statsBar}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>⚡ {totalXP}</Text>
@@ -123,9 +156,7 @@ export default function DetailedOverviewScreen() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>
-              ✅ {completedTasksCount}/{totalTasksCount}
-            </Text>
+            <Text style={styles.statValue}>✅ {completedTasksCount}/{totalTasksCount}</Text>
             <Text style={styles.statLabel}>Tasks</Text>
           </View>
           <View style={styles.statDivider} />
@@ -135,22 +166,15 @@ export default function DetailedOverviewScreen() {
           </View>
         </View>
 
-        {/* ============================================================
-            SECTION FILTER BAR
-            SPLIT INTO: <SectionFilterBar />
-            ============================================================ */}
+        {/* SECTION FILTER BAR */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.filterBar}
           contentContainerStyle={styles.filterBarContent}
         >
-          {/* "All" button */}
           <TouchableOpacity
-            style={[
-              styles.filterBtn,
-              activeFilter === null && styles.filterBtnActive,
-            ]}
+            style={[styles.filterBtn, activeFilter === null && styles.filterBtnActive]}
             onPress={() => setActiveFilter(null)}
           >
             <Text style={styles.filterBtnText}>All</Text>
@@ -175,40 +199,27 @@ export default function DetailedOverviewScreen() {
           ))}
         </ScrollView>
 
-        {/* ============================================================
-            HABIT HISTORY LIST
-            Each habit shows a 7-day dot grid.
-            SPLIT INTO: <HabitHistoryCard habit={habit} weekDates={[]} />
-            ============================================================ */}
+        {/* HABIT HISTORY LIST */}
         <Text style={styles.sectionHeader}>Habits This Week</Text>
 
         {filteredHabits.length === 0 && (
-          <Text style={styles.emptyText}>
-            No habits yet. Add some on the Overview tab!
-          </Text>
+          <Text style={styles.emptyText}>No habits yet. Add some on the Overview tab!</Text>
         )}
 
         {filteredHabits.map((habit) => {
-          const sectionInfo = TIME_SECTIONS.find(
-            (s) => s.id === habit.timeSection,
-          );
-
+          const sectionInfo = TIME_SECTIONS.find((s) => s.id === habit.timeSection);
           return (
             <View key={habit.id} style={styles.habitCard}>
-              {/* Habit header */}
               <View style={styles.habitCardHeader}>
                 <Text style={styles.habitCardIcon}>{habit.icon}</Text>
                 <View style={styles.habitCardInfo}>
                   <Text style={styles.habitCardTitle}>{habit.title}</Text>
                   <Text style={styles.habitCardMeta}>
-                    {sectionInfo?.emoji} {sectionInfo?.label} · 🔥{" "}
-                    {habit.streak} day streak · +{habit.xpReward} XP
+                    {sectionInfo?.emoji} {sectionInfo?.label} · 🔥 {habit.streak} day streak · +{habit.xpReward} XP
                   </Text>
                 </View>
               </View>
 
-              {/* 7-day dot grid */}
-              {/* SPLIT INTO: <WeekDotGrid habit={habit} weekDates={[]} /> */}
               <View style={styles.dotGrid}>
                 {weekDates.map((date) => {
                   const done = wasCompletedOn(habit, date);
@@ -230,7 +241,6 @@ export default function DetailedOverviewScreen() {
                 })}
               </View>
 
-              {/* Goal progress */}
               <View style={styles.goalRow}>
                 <Text style={styles.goalLabel}>
                   Goal: {habit.completedDates.length} / {habit.goalTarget} days
@@ -242,8 +252,7 @@ export default function DetailedOverviewScreen() {
                       {
                         width: `${Math.min(
                           100,
-                          (habit.completedDates.length / habit.goalTarget) *
-                            100,
+                          (habit.completedDates.length / habit.goalTarget) * 100
                         )}%`,
                       },
                     ]}
@@ -254,10 +263,7 @@ export default function DetailedOverviewScreen() {
           );
         })}
 
-        {/* ============================================================
-            TASK LIST — detailed view
-            SPLIT INTO: <DetailedTaskList tasks={filteredTasks} />
-            ============================================================ */}
+        {/* TASK LIST */}
         <Text style={styles.sectionHeader}>Tasks</Text>
 
         {filteredTasks.length === 0 && (
@@ -265,19 +271,13 @@ export default function DetailedOverviewScreen() {
         )}
 
         {filteredTasks.map((task) => {
-          const sectionInfo = TIME_SECTIONS.find(
-            (s) => s.id === task.timeSection,
-          );
+          const sectionInfo = TIME_SECTIONS.find((s) => s.id === task.timeSection);
           return (
             <View key={task.id} style={styles.taskCard}>
               <View
                 style={[
                   styles.taskStatusBar,
-                  {
-                    backgroundColor: task.isCompleted
-                      ? COLORS.success
-                      : COLORS.textMuted,
-                  },
+                  { backgroundColor: task.isCompleted ? COLORS.success : COLORS.textMuted },
                 ]}
               />
               <View style={styles.taskCardContent}>
@@ -293,9 +293,7 @@ export default function DetailedOverviewScreen() {
                   <Text style={styles.taskMetaText}>
                     {sectionInfo?.emoji} {sectionInfo?.label}
                   </Text>
-                  <Text style={styles.taskMetaText}>
-                    Priority: {task.priority}
-                  </Text>
+                  <Text style={styles.taskMetaText}>Priority: {task.priority}</Text>
                   <Text style={styles.taskMetaText}>
                     {task.isCompleted ? "✅ Done" : "⏳ Pending"}
                   </Text>
@@ -311,9 +309,6 @@ export default function DetailedOverviewScreen() {
   );
 }
 
-// ============================================================
-// STYLES
-// ============================================================
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -338,14 +333,44 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
   },
 
-  // Calendar Strip
-  calendarStrip: {
+  // Toggle
+  toggleContainer: {
+    flexDirection: "row",
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.full,
+    padding: 4,
+    marginBottom: SPACING.md,
+    alignSelf: "center",
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+  },
+  toggleBtn: {
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.full,
+  },
+  toggleBtnActive: {
+    backgroundColor: COLORS.primary,
+  },
+  toggleBtnText: {
+    fontSize: FONTS.sm,
+    color: COLORS.textMuted,
+    fontWeight: "600",
+  },
+  toggleBtnTextActive: {
+    color: COLORS.textPrimary,
+  },
+
+  // Week strip
+  weekStrip: {
     flexDirection: "row",
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
     padding: SPACING.sm,
     marginBottom: SPACING.md,
     justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
   },
   dayButton: {
     flex: 1,
@@ -384,6 +409,17 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.textPrimary,
   },
 
+  // Monthly calendar
+  calendarContainer: {
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.sm,
+    marginBottom: SPACING.md,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+  },
+
   // Stats Bar
   statsBar: {
     flexDirection: "row",
@@ -392,6 +428,8 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     marginBottom: SPACING.md,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
   },
   statItem: {
     flex: 1,
@@ -485,7 +523,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // 7-day dot grid
+  // Dot grid
   dotGrid: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -516,7 +554,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
 
-  // Goal progress mini bar
+  // Goal bar
   goalRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -540,7 +578,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
   },
 
-  // Task Card (detailed)
+  // Task Card
   taskCard: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
@@ -575,12 +613,5 @@ const styles = StyleSheet.create({
   taskMetaText: {
     fontSize: FONTS.xs,
     color: COLORS.textMuted,
-  },
-  calendarContainer: {
-    backgroundColor: COLORS.card,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.sm,
-    marginBottom: SPACING.md,
-    overflow: "hidden",
   },
 });

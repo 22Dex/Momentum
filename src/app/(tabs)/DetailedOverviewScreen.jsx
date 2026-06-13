@@ -29,7 +29,7 @@ import {
 import { Calendar } from "react-native-calendars";
 import { TIME_SECTIONS } from "../../data/appData";
 import { useAppState } from "../../hooks/useAppState";
-import { COLORS, FONTS, RADIUS, SPACING } from "../../theme/Themes";
+import { COLORS, FONTS, RADIUS, SPACING } from "../../theme/Themes"
 import {
   getCurrentWeekDates,
   getShortDayName,
@@ -38,6 +38,9 @@ import {
   getTotalXP,
   wasCompletedOn,
 } from "../../utils/helpers";
+import CalendarToggle from "../../Components/DetailedOverview/CalendarToggle";
+import WeeklyCalendar from "../../Components/DetailedOverview/WeeklyCalendar";
+
 
 export default function DetailedOverviewScreen() {
   const { habits, tasks } = useAppState();
@@ -72,58 +75,14 @@ export default function DetailedOverviewScreen() {
           <Text style={styles.pageSubtitle}>Your habits & tasks in detail</Text>
         </View>
 
-        {/* CALENDAR MODE TOGGLE */}
-        <View style={styles.toggleContainer}>
-          <TouchableOpacity
-            style={[styles.toggleBtn, calendarMode === "week" && styles.toggleBtnActive]}
-            onPress={() => setCalendarMode("week")}
-          >
-            <Text style={[styles.toggleBtnText, calendarMode === "week" && styles.toggleBtnTextActive]}>
-              Week
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.toggleBtn, calendarMode === "month" && styles.toggleBtnActive]}
-            onPress={() => setCalendarMode("month")}
-          >
-            <Text style={[styles.toggleBtnText, calendarMode === "month" && styles.toggleBtnTextActive]}>
-              Month
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <CalendarToggle
+          showCalendar={calendarMode === "month"}
+          setShowCalendar={(show) => setCalendarMode(show ? "month" : "week")}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+        />
 
-        {/* WEEKLY STRIP */}
-        {calendarMode === "week" && (
-          <View style={styles.weekStrip}>
-            {weekDates.map((date) => {
-              const isSelected = date === selectedDate;
-              const isToday = date === today;
-              const hasActivity = habits.some((h) => wasCompletedOn(h, date));
-
-              return (
-                <TouchableOpacity
-                  key={date}
-                  style={[
-                    styles.dayButton,
-                    isSelected && styles.dayButtonSelected,
-                    isToday && !isSelected && styles.dayButtonToday,
-                  ]}
-                  onPress={() => setSelectedDate(date)}
-                >
-                  <Text style={[styles.dayName, isSelected && styles.dayTextSelected]}>
-                    {getShortDayName(date).charAt(0)}
-                  </Text>
-                  <Text style={[styles.dayNumber, isSelected && styles.dayTextSelected]}>
-                    {new Date(date).getDate()}
-                  </Text>
-                  {hasActivity && (
-                    <View style={[styles.activityDot, isSelected && styles.activityDotSelected]} />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
+        <WeeklyCalendar selectedDate={selectedDate} setSelectedDate={setSelectedDate} calendarMode={calendarMode} />
 
         {/* MONTHLY CALENDAR */}
         {calendarMode === "month" && (
@@ -139,7 +98,7 @@ export default function DetailedOverviewScreen() {
               theme={{
                 todayTextColor: COLORS.primary,
                 selectedDayBackgroundColor: COLORS.primary,
-                calendarBackground: COLORS.card,
+                calendarBackground: COLORS.cardBorder,
                 dayTextColor: COLORS.textPrimary,
                 monthTextColor: COLORS.textPrimary,
                 arrowColor: COLORS.primary,
@@ -333,97 +292,12 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
   },
 
-  // Toggle
-  toggleContainer: {
-    flexDirection: "row",
-    backgroundColor: COLORS.card,
-    borderRadius: RADIUS.full,
-    padding: 4,
-    marginBottom: SPACING.md,
-    alignSelf: "center",
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-  },
-  toggleBtn: {
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.full,
-  },
-  toggleBtnActive: {
-    backgroundColor: COLORS.primary,
-  },
-  toggleBtnText: {
-    fontSize: FONTS.sm,
-    color: COLORS.textMuted,
-    fontWeight: "600",
-  },
-  toggleBtnTextActive: {
-    color: COLORS.textPrimary,
-  },
 
-  // Week strip
-  weekStrip: {
-    flexDirection: "row",
-    backgroundColor: COLORS.card,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.sm,
-    marginBottom: SPACING.md,
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-  },
-  dayButton: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.md,
-  },
-  dayButtonSelected: {
-    backgroundColor: COLORS.primary,
-  },
-  dayButtonToday: {
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  dayName: {
-    fontSize: FONTS.xs,
-    color: COLORS.textMuted,
-    marginBottom: 2,
-  },
-  dayNumber: {
-    fontSize: FONTS.md,
-    color: COLORS.textPrimary,
-    fontWeight: "600",
-  },
-  dayTextSelected: {
-    color: COLORS.textPrimary,
-  },
-  activityDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.primary,
-    marginTop: 2,
-  },
-  activityDotSelected: {
-    backgroundColor: COLORS.textPrimary,
-  },
-
-  // Monthly calendar
-  calendarContainer: {
-    backgroundColor: COLORS.card,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.sm,
-    marginBottom: SPACING.md,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-  },
 
   // Stats Bar
   statsBar: {
     flexDirection: "row",
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.cardBorder,
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     marginBottom: SPACING.md,
@@ -465,7 +339,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.cardBorder,
   },
   filterBtnActive: {
     backgroundColor: COLORS.primary,
@@ -493,7 +367,7 @@ const styles = StyleSheet.create({
 
   // Habit Card
   habitCard: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.cardBorder,
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     marginBottom: SPACING.sm,
@@ -580,7 +454,7 @@ const styles = StyleSheet.create({
 
   // Task Card
   taskCard: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.cardBorder,
     borderRadius: RADIUS.lg,
     marginBottom: SPACING.sm,
     flexDirection: "row",

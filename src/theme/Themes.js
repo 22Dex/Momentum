@@ -15,7 +15,7 @@ export const COLORS = {
 
   // Backgrounds
   background: '#0F0F1A',     // Dark navy — main screen bg
-  card: '#1A1A2E',           // Slightly lighter — card bg
+  card: '#12121f',           // Slightly lighter — card bg
   cardBorder: '#2A2A45',     // Subtle border color
 
   // Text

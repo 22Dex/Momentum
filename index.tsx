@@ -6,9 +6,9 @@ import { AppProvider } from "./src/hooks/useAppState";
 import { COLORS } from "./src/theme/Themes";
 
 // Import your screen components
-import progress from "./src/app/DetailedOverviewScreen";
+import progress from "./src/app/(tabs)/DetailedOverviewScreen";
 import More from "./src/app/(tabs)/More";
-import Habits from "./src/app/ProgressScreen";
+import Habits from "./src/app/(tabs)/ProgressScreen";
 
 const Tab = createBottomTabNavigator();
 

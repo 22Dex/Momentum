@@ -31,11 +31,15 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { useAppState } from "../../hooks/useAppState";
 import { COLORS, FONTS, RADIUS, SPACING } from "../../theme/Themes";
-import { getXPPercent } from "../../utils/helpers";
+import { getXPPercent, getTodayString } from "../../utils/helpers";
+// Local accent override: replace gold undertones with dark burgundy
+const BURGUNDY = '#5A0D0D';
+const BURGUNDY_LIGHT = '#8A2B2B';
 
 // ---- LEVEL SYSTEM ----
 // Simple formula: every 100 XP = 1 level
@@ -66,6 +70,7 @@ export default function ProgressScreen() {
   const [newGoalDescription, setNewGoalDescription] = useState("");
   const [newGoalTarget, setNewGoalTarget] = useState("100");
   const [newGoalReward, setNewGoalReward] = useState("");
+  const [newGoalPeriod, setNewGoalPeriod] = useState('week');
 
   // Separate active goals from completed ones
   const activeGoals = goals.filter((g) => !g.isCompleted);
@@ -83,6 +88,7 @@ export default function ProgressScreen() {
       title: newGoalTitle.trim(),
       description: newGoalDescription.trim(),
       targetXP: parseInt(newGoalTarget) || 100,
+      period: newGoalPeriod,
       reward: newGoalReward.trim(),
     });
     setShowAddModal(false);
@@ -90,6 +96,37 @@ export default function ProgressScreen() {
     setNewGoalDescription("");
     setNewGoalTarget("100");
     setNewGoalReward("");
+  }
+
+  // Map period id to days
+  function periodToDays(period) {
+    switch (period) {
+      case 'week':
+        return 7;
+      case '2w':
+        return 14;
+      case 'month':
+        return 30;
+      case '3m':
+        return 90;
+      case '6m':
+        return 180;
+      case 'year':
+        return 365;
+      default:
+        return 30;
+    }
+  }
+
+  function computeDaysLeft(goal) {
+    if (!goal || !goal.createdAt) return null;
+    const total = periodToDays(goal.period || goal.period || 'month');
+    const start = new Date(goal.createdAt + 'T00:00:00');
+    const today = new Date(getTodayString() + 'T00:00:00');
+    const diffMs = today - start;
+    const elapsed = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const left = total - elapsed;
+    return left;
   }
 
   // ============================================================
@@ -177,7 +214,18 @@ export default function ProgressScreen() {
                     </Text>
                   ) : null}
                 </View>
-                <Text style={styles.goalPercent}>{percent}%</Text>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={styles.goalPercent}>{percent}%</Text>
+                  <Text style={styles.daysLeftText}>
+                    {(() => {
+                      const left = computeDaysLeft(goal);
+                      if (left == null) return '';
+                      if (left <= 0) return 'Expired';
+                      if (left === 1) return '1 day left';
+                      return `${left} days left`;
+                    })()}
+                  </Text>
+                </View>
               </View>
 
               {/* XP progress bar */}
@@ -202,27 +250,11 @@ export default function ProgressScreen() {
 
               {/* Action buttons */}
               <View style={styles.goalActions}>
-                {/* Add XP manually (testing) */}
-                {/* TODO: Later, XP should only come from completing habits/tasks */}
-                <TouchableOpacity
-                  style={styles.addXPBtn}
-                  onPress={() => addGoalXP(goal.id, 10)}
-                >
-                  <Text style={styles.addXPBtnText}>+10 XP</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.addXPBtn}
-                  onPress={() => addGoalXP(goal.id, 25)}
-                >
-                  <Text style={styles.addXPBtnText}>+25 XP</Text>
-                </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.addXPBtn, styles.deleteBtn]}
                   onPress={() => deleteGoal(goal.id)}
                 >
-                  <Text style={[styles.addXPBtnText, styles.deleteBtnText]}>
-                    Delete
-                  </Text>
+                  <Text style={[styles.addXPBtnText, styles.deleteBtnText]}>Delete</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -268,61 +300,91 @@ export default function ProgressScreen() {
       <Modal
         visible={showAddModal}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowAddModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>New Goal</Text>
+        <TouchableWithoutFeedback onPress={() => setShowAddModal(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCardCentered} onStartShouldSetResponder={() => true}>
+              <Text style={styles.modalTitle}>Create Goal</Text>
+              <Text style={[styles.inputLabel, { marginTop: 6 }]}>Short-term or long-term goals — pick a window to track over</Text>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Goal title (e.g. Build a workout habit)"
-              placeholderTextColor={COLORS.textMuted}
-              value={newGoalTitle}
-              onChangeText={setNewGoalTitle}
-            />
+              <Text style={[styles.inputLabel, { marginTop: 14 }]}>Tracking window</Text>
+              <View style={styles.priorityRow}>
+                {[
+                  { id: 'week', label: '1 Week' },
+                  { id: '2w', label: '2 Weeks' },
+                  { id: 'month', label: '1 Month' },
+                  { id: '3m', label: '3 Months' },
+                  { id: '6m', label: '6 Months' },
+                  { id: 'year', label: '1 Year' },
+                ].map((p) => (
+                  <TouchableOpacity
+                    key={p.id}
+                    style={[
+                      styles.priorityBtn,
+                      newGoalPeriod === p.id && styles.priorityBtnActive,
+                    ]}
+                    onPress={() => setNewGoalPeriod(p.id)}
+                  >
+                    <Text style={[styles.priorityBtnText, newGoalPeriod === p.id && styles.priorityBtnTextActive]}>{p.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-            <TextInput
-              style={[styles.input, styles.inputMultiline]}
-              placeholder="Description (optional)"
-              placeholderTextColor={COLORS.textMuted}
-              value={newGoalDescription}
-              onChangeText={setNewGoalDescription}
-              multiline
-              numberOfLines={3}
-            />
+              <Text style={[styles.inputLabel, { marginTop: 12 }]}>Goal title</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Goal title (e.g. Build a workout habit)"
+                placeholderTextColor={COLORS.textMuted}
+                value={newGoalTitle}
+                onChangeText={setNewGoalTitle}
+              />
 
-            <TextInput
-              style={styles.input}
-              placeholder="XP target (e.g. 100)"
-              placeholderTextColor={COLORS.textMuted}
-              keyboardType="numeric"
-              value={newGoalTarget}
-              onChangeText={setNewGoalTarget}
-            />
+              <Text style={styles.inputLabel}>XP target</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="XP target (e.g. 100)"
+                placeholderTextColor={COLORS.textMuted}
+                keyboardType="numeric"
+                value={newGoalTarget}
+                onChangeText={setNewGoalTarget}
+              />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Reward when done (e.g. Buy new headphones)"
-              placeholderTextColor={COLORS.textMuted}
-              value={newGoalReward}
-              onChangeText={setNewGoalReward}
-            />
+              <Text style={styles.inputLabel}>Description (optional)</Text>
+              <TextInput
+                style={[styles.input, styles.inputMultiline]}
+                placeholder="Description (optional)"
+                placeholderTextColor={COLORS.textMuted}
+                value={newGoalDescription}
+                onChangeText={setNewGoalDescription}
+                multiline
+                numberOfLines={3}
+              />
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => setShowAddModal(false)}
-              >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleAddGoal}>
-                <Text style={styles.saveBtnText}>Create Goal</Text>
-              </TouchableOpacity>
+              <Text style={styles.inputLabel}>Reward (optional)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Reward when done (e.g. Buy new headphones)"
+                placeholderTextColor={COLORS.textMuted}
+                value={newGoalReward}
+                onChangeText={setNewGoalReward}
+              />
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => setShowAddModal(false)}
+                >
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.saveBtn} onPress={handleAddGoal}>
+                  <Text style={styles.saveBtnText}>Create Goal</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </SafeAreaView>
   );
@@ -365,13 +427,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: BURGUNDY,
   },
   levelBadge: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: COLORS.primary,
+    backgroundColor: BURGUNDY,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -382,7 +444,7 @@ const styles = StyleSheet.create({
   },
   levelLabel: {
     fontSize: FONTS.xs,
-    color: COLORS.primaryLight,
+    color: BURGUNDY_LIGHT,
   },
   levelInfo: {
     flex: 1,
@@ -399,23 +461,57 @@ const styles = StyleSheet.create({
   },
   totalXPText: {
     fontSize: FONTS.sm,
-    color: COLORS.xpBar,
+    color: BURGUNDY,
   },
   levelBarBg: {
-    height: 8,
+    height: 12,
     backgroundColor: COLORS.cardBorder,
     borderRadius: RADIUS.full,
     overflow: "hidden",
     marginBottom: SPACING.xs,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
   },
   levelBarFill: {
     height: "100%",
-    backgroundColor: COLORS.xpBar,
+    backgroundColor: BURGUNDY,
     borderRadius: RADIUS.full,
   },
   levelProgress: {
     fontSize: FONTS.xs,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
+    letterSpacing: 0.2,
+  },
+
+  // Priority / selector row (used for tracking-window buttons)
+  priorityRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+    justifyContent: 'space-between',
+  },
+  priorityBtn: {
+    width: '48%',
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    alignItems: "center",
+    backgroundColor: COLORS.background,
+  },
+  priorityBtnActive: {
+    backgroundColor: BURGUNDY,
+    borderColor: BURGUNDY,
+  },
+  priorityBtnText: {
+    color: COLORS.textPrimary,
+    fontSize: FONTS.sm,
+    textTransform: "none",
+    fontWeight: "600",
+  },
+  priorityBtnTextActive: {
+    color: COLORS.textPrimaryInvert || '#fff',
   },
 
   // Section row
@@ -431,7 +527,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   addGoalBtn: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: BURGUNDY,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.full,
@@ -504,19 +600,21 @@ const styles = StyleSheet.create({
   },
   goalPercent: {
     fontSize: FONTS.lg,
-    color: COLORS.primary,
+    color: BURGUNDY,
     fontWeight: "700",
   },
   goalBarBg: {
-    height: 10,
+    height: 12,
     backgroundColor: COLORS.cardBorder,
     borderRadius: RADIUS.full,
     overflow: "hidden",
     marginBottom: SPACING.xs,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
   },
   goalBarFill: {
     height: "100%",
-    backgroundColor: COLORS.primary,
+    backgroundColor: BURGUNDY,
     borderRadius: RADIUS.full,
   },
   goalBarComplete: {
@@ -524,13 +622,15 @@ const styles = StyleSheet.create({
   },
   goalXPText: {
     fontSize: FONTS.xs,
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary,
     marginBottom: SPACING.xs,
+    letterSpacing: 0.2,
   },
   rewardText: {
     fontSize: FONTS.sm,
     color: COLORS.warning,
     marginBottom: SPACING.sm,
+    fontWeight: "600",
   },
   goalActions: {
     flexDirection: "row",
@@ -541,12 +641,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.md,
-    backgroundColor: COLORS.primaryLight + "33", // 20% opacity
+    backgroundColor: BURGUNDY_LIGHT + "33", // 20% opacity
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: BURGUNDY,
   },
   addXPBtnText: {
-    color: COLORS.primaryLight,
+    color: BURGUNDY_LIGHT,
     fontSize: FONTS.sm,
     fontWeight: "600",
   },
@@ -578,8 +678,9 @@ const styles = StyleSheet.create({
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: 'center',
   },
   modalCard: {
     backgroundColor: COLORS.card,
@@ -587,6 +688,15 @@ const styles = StyleSheet.create({
     borderTopRightRadius: RADIUS.xl,
     padding: SPACING.lg,
     paddingBottom: SPACING.xxl,
+  },
+  modalCardCentered: {
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.lg,
+    width: '92%',
+    maxWidth: 720,
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
   },
   modalTitle: {
     fontSize: FONTS.xl,
@@ -629,12 +739,17 @@ const styles = StyleSheet.create({
     flex: 2,
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.md,
-    backgroundColor: COLORS.primary,
+    backgroundColor: BURGUNDY,
     alignItems: "center",
   },
   saveBtnText: {
     color: COLORS.textPrimary,
     fontSize: FONTS.md,
     fontWeight: "600",
+  },
+  daysLeftText: {
+    fontSize: FONTS.xs,
+    color: COLORS.textSecondary,
+    marginTop: 4,
   },
 });

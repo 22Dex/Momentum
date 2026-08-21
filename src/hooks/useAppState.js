@@ -14,7 +14,13 @@
 // ============================================================
 
 import React, { createContext, useContext, useState } from 'react';
-import { generateId, getTodayString, calculateStreak } from '../utils/helpers';
+import {
+  generateId,
+  getTodayString,
+  calculateStreak,
+  getHabitBaseXP,
+  computeXPForAmount,
+} from '../utils/helpers';
 import { SAMPLE_HABITS, SAMPLE_TASKS } from '../data/appData';
 
 // Step 1: Create the "container" for our global state
@@ -72,29 +78,71 @@ export function AppProvider({ children }) {
   }
 
   /** Mark a habit as complete (or un-complete) for today */
-  function toggleHabitToday(habitId) {
+  /**
+   * Toggle or log a habit for today.
+   * If `amount` is provided (and habit.measureType === 'amount'), compute proportional XP.
+   * Otherwise behave like a binary/streak toggle and award base XP.
+   */
+  function toggleHabitToday(habitId, amount = null) {
     const today = getTodayString();
     setHabits((prev) =>
       prev.map((habit) => {
         if (habit.id !== habitId) return habit; // Not this habit, skip
 
         const alreadyDone = habit.completedDates.includes(today);
-        let newDates;
+        let newDates = habit.completedDates;
 
-        if (alreadyDone) {
-          // Un-complete it: remove today from the list
-          newDates = habit.completedDates.filter((d) => d !== today);
+        if (habit.measureType === 'amount') {
+          // amount-style logging: adding a log entry for today
+          if (amount == null) return habit; // require amount to log
+
+          // If already done today, remove existing log and subtract XP
+          if (alreadyDone) {
+            // remove today's log(s)
+            const todaysLogs = (habit.logs || []).filter((l) => l.date === today);
+            const xpToRemove = todaysLogs.reduce((s, l) => s + (l.xp || 0), 0);
+            newDates = habit.completedDates.filter((d) => d !== today);
+            setTotalXP((xp) => Math.max(0, xp - xpToRemove));
+            return {
+              ...habit,
+              completedDates: newDates,
+              logs: (habit.logs || []).filter((l) => l.date !== today),
+              streak: calculateStreak(newDates),
+            };
+          }
+
+          // Compute XP for the amount logged and add a log entry
+          const xpEarned = computeXPForAmount(habit, amount);
+          const newLog = { date: today, amount, xp: xpEarned };
+          newDates = [...(habit.completedDates || []), today];
+          setTotalXP((xp) => xp + xpEarned);
+
+          return {
+            ...habit,
+            completedDates: newDates,
+            logs: [...(habit.logs || []), newLog],
+            streak: calculateStreak(newDates),
+          };
         } else {
-          // Complete it: add today to the list + earn XP
-          newDates = [...habit.completedDates, today];
-          setTotalXP((xp) => xp + habit.xpReward); // Give XP!
-        }
+          // binary/streak habit
+          if (alreadyDone) {
+            // Un-complete it: remove today from the list and subtract base XP
+            newDates = habit.completedDates.filter((d) => d !== today);
+            const base = getHabitBaseXP(habit);
+            setTotalXP((xp) => Math.max(0, xp - base));
+          } else {
+            // Complete it: add today to the list + earn base XP
+            newDates = [...habit.completedDates, today];
+            const base = getHabitBaseXP(habit);
+            setTotalXP((xp) => xp + base);
+          }
 
-        return {
-          ...habit,
-          completedDates: newDates,
-          streak: calculateStreak(newDates), // Recalculate streak
-        };
+          return {
+            ...habit,
+            completedDates: newDates,
+            streak: calculateStreak(newDates), // Recalculate streak
+          };
+        }
       })
     );
   }

@@ -97,18 +97,69 @@ export function getXPPercent(currentXP, targetXP) {
  */
 export function getTodayXP(habits) {
   const today = getTodayString();
-  return habits
-    .filter((h) => h.completedDates.includes(today))
-    .reduce((total, h) => total + h.xpReward, 0);
+  // sum xp from logs when available (amount-style), else fall back to xpReward
+  return habits.reduce((total, h) => {
+    // logs entries for today
+    if (h.logs && h.logs.length > 0) {
+      const todaysLogs = h.logs.filter((l) => l.date === today);
+      if (todaysLogs.length > 0) {
+        return total + todaysLogs.reduce((s, l) => s + (l.xp || 0), 0);
+      }
+    }
+    // fallback to completedDates + xpReward
+    if (h.completedDates && h.completedDates.includes(today)) {
+      return total + (h.xpReward || 0);
+    }
+    return total;
+  }, 0);
 }
 
 /**
  * Calculates total XP ever earned (all time)
  */
 export function getTotalXP(habits) {
+  // Sum all XP recorded in logs (for amount-style) and completedDates fallback
   return habits.reduce((total, h) => {
-    return total + h.completedDates.length * h.xpReward;
+    let sum = 0;
+    if (h.logs && h.logs.length > 0) {
+      sum += h.logs.reduce((s, l) => s + (l.xp || 0), 0);
+    }
+    // For any completedDates that don't have logs, fall back to xpReward
+    const loggedDates = new Set((h.logs || []).map((l) => l.date));
+    if (h.completedDates && h.completedDates.length > 0) {
+      h.completedDates.forEach((d) => {
+        if (!loggedDates.has(d)) sum += h.xpReward || 0;
+      });
+    }
+    return total + sum;
   }, 0);
+}
+
+// Difficulty → default XP mapping. These are the defaults the user requested.
+export const DIFFICULTY_XP = {
+  easy: 100,
+  medium: 200,
+  hard: 400,
+};
+
+/**
+ * Return the base XP for a habit, preferring an explicit xpReward, then difficulty mapping.
+ */
+export function getHabitBaseXP(habit) {
+  if (!habit) return 0;
+  if (typeof habit.xpReward === 'number' && habit.xpReward > 0) return habit.xpReward;
+  return DIFFICULTY_XP[habit.difficulty] || DIFFICULTY_XP.easy;
+}
+
+/**
+ * Compute XP for an amount-style log.
+ * Returns rounded integer XP proportional to amount/goalAmount, capped at base XP.
+ */
+export function computeXPForAmount(habit, amount) {
+  const base = getHabitBaseXP(habit);
+  const goal = habit.goalAmount && habit.goalAmount > 0 ? habit.goalAmount : 1;
+  const ratio = Math.min(1, amount / goal);
+  return Math.round(base * ratio);
 }
 
 // ------- STREAK HELPERS -------

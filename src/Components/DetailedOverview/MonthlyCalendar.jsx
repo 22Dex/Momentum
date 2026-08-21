@@ -1,37 +1,63 @@
-import {Text, TouchableOpacity, View} from 'react-native';
-import React from 'react';
-import {useTheme} from '@react-navigation/native';
-import {Calendar} from 'react-native-calendars';
+import { StyleSheet, View } from "react-native";
+import { Calendar } from "react-native-calendars";
+import { COLORS, RADIUS, SPACING } from "../../theme/Themes";
 
-const MonthlyCalendar = ({selectedDate, setSelectedDate}) => {
-    const theme = useTheme();
-
-    return (
-        calendarMode === "month" && (
-                  <View style={styles.calendarContainer}>
-                    <Calendar
-                      onDayPress={(day) => setSelectedDate(day.dateString)}
-                      markedDates={{
-                        [selectedDate]: {
-                          selected: true,
-                          selectedColor: COLORS.primary,
-                        },
-                      }}
-                      theme={{
-                        todayTextColor: COLORS.primary,
-                        selectedDayBackgroundColor: COLORS.primary,
-                        calendarBackground: COLORS.card,
-                        dayTextColor: COLORS.textPrimary,
-                        monthTextColor: COLORS.textPrimary,
-                        arrowColor: COLORS.primary,
-                      }}
-                    />
-                  </View>
-                )
-    );
+export default function MonthlyCalendar({
+  selectedDate,
+  setSelectedDate,
+  calendarMode,
+}) {
+  return (
+    calendarMode === "month" && (
+      <View style={styles.calendarContainer}>
+        <Calendar
+          onDayPress={(day) => setSelectedDate(day.dateString)}
+          onMonthChange={(month) =>
+            setSelectedDate(month.dateString || selectedDate)
+          }
+          markedDates={{
+            [selectedDate]: {
+              selected: true,
+              selectedColor: COLORS.primary,
+              selectedTextColor: COLORS.textPrimary,
+            },
+          }}
+          theme={{
+            backgroundColor: COLORS.background,
+            calendarBackground: COLORS.background,
+            textSectionTitleColor: COLORS.textSecondary,
+            dayTextColor: COLORS.textPrimary,
+            monthTextColor: COLORS.textPrimary,
+            arrowColor: COLORS.textSecondary,
+            todayTextColor: COLORS.textPrimary,
+            selectedDayBackgroundColor: COLORS.primary,
+            selectedDayTextColor: COLORS.textPrimary,
+            textDisabledColor: "#B7B3AF",
+            dotColor: COLORS.primary,
+            selectedDotColor: COLORS.textPrimary,
+            textDayFontFamily: "System",
+            textMonthFontFamily: "System",
+            textDayHeaderFontFamily: "System",
+            textDayFontWeight: "500",
+            textMonthFontWeight: "700",
+            weekVerticalMargin: 6,
+            paddingLeft: 10,
+            paddingRight: 10,
+            "stylesheet.calendar.header": {
+              week: {
+                marginTop: 6,
+                flexDirection: "row",
+                justifyContent: "space-between",
+              },
+            },
+          }}
+        />
+      </View>
+    )
+  );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   calendarContainer: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.lg,
@@ -41,4 +67,4 @@ const styles = {
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
   },
-}
+});

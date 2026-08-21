@@ -33,7 +33,7 @@
 //  - <WeeklyReviewCard review={} /> — a past review card
 // ============================================================
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   SafeAreaView,
@@ -44,6 +44,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Svg, { Circle } from "react-native-svg";
 import { useAppState } from "../../hooks/useAppState";
 import { COLORS, FONTS, RADIUS, SPACING } from "../../theme/Themes";
 import {
@@ -56,7 +57,6 @@ import {
 // Tabs for this screen
 const TABS = [
   { id: "journal", label: "📓 Journal" },
-  { id: "focus", label: "⏱ Focus" },
   { id: "review", label: "📋 Review" },
 ];
 
@@ -89,12 +89,6 @@ export default function ToolsScreen() {
   const [journalContent, setJournalContent] = useState("");
   const [journalGratitude, setJournalGratitude] = useState("");
 
-  // ---- Focus Timer state ----
-  const [focusDuration, setFocusDuration] = useState(25); // minutes
-  const [secondsLeft, setSecondsLeft] = useState(25 * 60);
-  const [isRunning, setIsRunning] = useState(false);
-  const timerRef = useRef(null); // Holds the interval reference
-
   // ---- Weekly Review state ----
   const [reviewWins, setReviewWins] = useState("");
   const [reviewImprovements, setReviewImprovements] = useState("");
@@ -125,47 +119,6 @@ export default function ToolsScreen() {
     }
     return streak;
   })();
-
-  // ---- Focus timer logic ----
-  // useEffect runs when isRunning changes. It starts/stops the interval.
-  useEffect(() => {
-    if (isRunning) {
-      // Start the countdown
-      timerRef.current = setInterval(() => {
-        setSecondsLeft((prev) => {
-          if (prev <= 1) {
-            // Timer done!
-            clearInterval(timerRef.current);
-            setIsRunning(false);
-            addFocusSession(focusDuration); // Save the session
-            Alert.alert(
-              "Session complete! 🎉",
-              `You focused for ${focusDuration} minutes!`,
-            );
-            return focusDuration * 60; // Reset timer
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      // Pause: clear the interval
-      clearInterval(timerRef.current);
-    }
-
-    // Cleanup when component unmounts or isRunning changes
-    return () => clearInterval(timerRef.current);
-  }, [isRunning]);
-
-  function resetTimer() {
-    setIsRunning(false);
-    setSecondsLeft(focusDuration * 60);
-  }
-
-  function changeDuration(minutes) {
-    setFocusDuration(minutes);
-    setSecondsLeft(minutes * 60);
-    setIsRunning(false);
-  }
 
   // Total focus minutes this week
   const totalFocusMinutes = getTotalFocusMinutes(focusSessions);
@@ -347,32 +300,56 @@ export default function ToolsScreen() {
             ============================================================ */}
         {activeTab === "focus" && (
           <View>
-            {/* Focus minutes tracker */}
-            <View style={styles.statsRow}>
-              <View style={[styles.statCard, { flex: 1 }]}>
-                <Text style={styles.statEmoji}>⏱</Text>
-                <Text style={styles.statBigNumber}>{totalFocusMinutes}</Text>
-                <Text style={styles.statCardLabel}>Total Focus Minutes</Text>
-              </View>
-              <View style={[styles.statCard, { flex: 1 }]}>
-                <Text style={styles.statEmoji}>🧘</Text>
-                <Text style={styles.statBigNumber}>
-                  {focusSessions.filter((s) => s.isCompleted).length}
-                </Text>
-                <Text style={styles.statCardLabel}>Sessions Done</Text>
-              </View>
-            </View>
-
-            {/* Timer display */}
             <View style={styles.timerCard}>
-              <Text style={styles.timerDisplay}>
-                {formatTimer(secondsLeft)}
-              </Text>
-              <Text style={styles.timerSubtext}>
-                {isRunning ? "● Focusing..." : "Ready to focus"}
-              </Text>
+              <View style={styles.timerRingWrap}>
+                <Svg width={320} height={320} viewBox="0 0 320 320">
+                  <Circle
+                    cx="160"
+                    cy="160"
+                    r="126"
+                    stroke={COLORS.cardBorder}
+                    strokeWidth={10}
+                    fill="transparent"
+                  />
+                  <Circle
+                    cx="160"
+                    cy="160"
+                    r="126"
+                    stroke={COLORS.primary}
+                    strokeWidth={10}
+                    fill="transparent"
+                    strokeDasharray={2 * Math.PI * 126}
+                    strokeDashoffset={
+                      2 *
+                      Math.PI *
+                      126 *
+                      (1 -
+                        Math.min(
+                          1,
+                          Math.max(
+                            0,
+                            (focusDuration * 60 - secondsLeft) /
+                              (focusDuration * 60),
+                          ),
+                        ))
+                    }
+                    strokeLinecap="round"
+                    rotation={-90}
+                    originX="160"
+                    originY="160"
+                  />
+                </Svg>
 
-              {/* Duration selector buttons */}
+                <View style={styles.timerCenter}>
+                  <Text style={styles.timerDisplay}>
+                    {formatTimer(secondsLeft)}
+                  </Text>
+                  <Text style={styles.timerSubtext}>
+                    {isRunning ? "Focus mode" : "Ready when you are"}
+                  </Text>
+                </View>
+              </View>
+
               <View style={styles.durationRow}>
                 {[5, 15, 25, 50].map((mins) => (
                   <TouchableOpacity
@@ -383,12 +360,15 @@ export default function ToolsScreen() {
                     ]}
                     onPress={() => changeDuration(mins)}
                   >
-                    <Text style={styles.durationBtnText}>{mins}m</Text>
+                    <Text style={styles.durationBtnText}>
+                      {mins === 5 || mins === 15
+                        ? `${mins}m break`
+                        : `${mins}m`}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              {/* Timer controls */}
               <View style={styles.timerControls}>
                 <TouchableOpacity style={styles.resetBtn} onPress={resetTimer}>
                   <Text style={styles.resetBtnText}>Reset</Text>
@@ -398,7 +378,7 @@ export default function ToolsScreen() {
                   onPress={() => setIsRunning((r) => !r)}
                 >
                   <Text style={styles.startBtnText}>
-                    {isRunning ? "⏸ Pause" : "▶ Start"}
+                    {isRunning ? "Pause" : "Start"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -741,31 +721,43 @@ const styles = StyleSheet.create({
 
   // Timer
   timerCard: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.background,
     borderRadius: RADIUS.xl,
-    padding: SPACING.xl,
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING.md,
     alignItems: "center",
     marginBottom: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
+  },
+  timerRingWrap: {
+    width: 350,
+    height: 350,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: SPACING.md,
+  },
+  timerCenter: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
   },
   timerDisplay: {
-    fontSize: 64,
+    fontSize: 46,
     color: COLORS.textPrimary,
     fontWeight: "700",
     fontVariant: ["tabular-nums"],
-    letterSpacing: 4,
+    letterSpacing: 2,
   },
   timerSubtext: {
     fontSize: FONTS.sm,
     color: COLORS.textMuted,
     marginTop: SPACING.xs,
-    marginBottom: SPACING.md,
   },
   durationRow: {
     flexDirection: "row",
     gap: SPACING.sm,
     marginBottom: SPACING.lg,
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
   durationBtn: {
     paddingHorizontal: SPACING.md,
@@ -773,6 +765,9 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
+    backgroundColor: COLORS.background,
+    minWidth: 72,
+    alignItems: "center",
   },
   durationBtnActive: {
     backgroundColor: COLORS.primary,
@@ -781,6 +776,7 @@ const styles = StyleSheet.create({
   durationBtnText: {
     color: COLORS.textPrimary,
     fontSize: FONTS.sm,
+    fontWeight: "600",
   },
   timerControls: {
     flexDirection: "row",
@@ -793,6 +789,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
+    backgroundColor: COLORS.background,
     alignItems: "center",
   },
   resetBtnText: {
@@ -803,14 +800,14 @@ const styles = StyleSheet.create({
     flex: 2,
     paddingVertical: SPACING.md,
     borderRadius: RADIUS.md,
-    backgroundColor: COLORS.success,
+    backgroundColor: COLORS.primary,
     alignItems: "center",
   },
   pauseBtn: {
     backgroundColor: COLORS.warning,
   },
   startBtnText: {
-    color: COLORS.textPrimary,
+    color: "#0B0B0B",
     fontSize: FONTS.md,
     fontWeight: "700",
   },

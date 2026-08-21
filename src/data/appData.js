@@ -43,7 +43,12 @@ export const EMPTY_HABIT = {
   title: '',             // Name of the habit
   timeSection: '',       // 'morning', 'afternoon', 'evening', or 'night'
   icon: '⭐',            // Emoji icon for the habit
-  xpReward: 10,          // How much XP completing this gives
+  xpReward: 10,          // How much XP completing this gives (kept for compatibility)
+  difficulty: 'easy',    // 'easy' | 'medium' | 'hard' — used to derive default XP
+  measureType: 'streak', // 'streak' (binary per-day) or 'amount' (log numeric amounts)
+  goalAmount: 1,         // When measureType === 'amount', this is the target amount (e.g. 10 pages)
+  unit: '',              // Unit string for amount habits (e.g. 'pages', 'mi')
+  logs: [],              // Array of {date, amount, xp} for amount-style logging
   streak: 0,             // Current streak (days in a row)
   completedDates: [],    // Array of date strings like '2026-06-07'
   goalTarget: 7,         // Goal: do this X days in a row (or X times)
@@ -72,6 +77,7 @@ export const EMPTY_GOAL = {
   currentXP: 0,          // XP earned so far toward this goal
   isCompleted: false,
   reward: '',            // What you "earn" when done (just a label)
+  period: 'week',        // Tracking window: 'week' | 'month' | '3m' | '6m' | 'year'
   createdAt: '',
   completedAt: '',
 };

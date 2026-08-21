@@ -6,32 +6,34 @@
 
 export const COLORS = {
   // Main brand colors
-  primary: '#6C63FF',        // Purple — buttons, active states
-  primaryLight: '#A89CFF',   // Lighter purple — backgrounds
-  accent: '#FF6584',         // Pink — streaks, highlights
-  success: '#43D19E',        // Green — completed tasks
-  warning: '#FFB74D',        // Orange — in-progress
-  danger: '#FF5252',         // Red — missed/overdue
+  primary: "#5A0D0D",
+  primaryLight: "#8A2B2B",
+  accent: "#7A1A1A",
+  success: "#9FAF8A",
+  warning: "#D3BA83",
+  danger: "#C77C63",
+  gray: "#7A6E63",
 
   // Backgrounds
-  background: '#0F0F1A',     // Dark navy — main screen bg
-  card: '#12121f',           // Slightly lighter — card bg
-  cardBorder: '#2A2A45',     // Subtle border color
+  background: "#14110F",
+  card: "#1B1815",
+  cardBorder: "#2A241F",
+  elevated: "#221D1A",
 
   // Text
-  textPrimary: '#FFFFFF',    // White — main text
-  textSecondary: '#A0A0C0',  // Muted — subtitles, labels
-  textMuted: '#606080',      // Very muted — placeholder text
+  textPrimary: "#F2EDE7",
+  textSecondary: "#D8CBB8",
+  textMuted: "#9C907F",
 
   // Time-of-day section colors
-  morning: '#FFD166',        // Warm yellow
-  afternoon: '#06D6A0',      // Teal/green
-  evening: '#118AB2',        // Blue
-  night: '#7B2D8B',          // Deep purple
+  morning: "#7A2B2A",
+  afternoon: "#6A1F1F",
+  evening: "#5A1919",
+  night: "#7E623E",
 
   // XP / Progress bar
-  xpBar: '#FFD700',          // Gold for XP bar
-  xpBarBg: '#2A2A45',        // Dark background behind XP bar
+  xpBar: "#5A0D0D",
+  xpBarBg: "#171717",
 };
 
 export const FONTS = {

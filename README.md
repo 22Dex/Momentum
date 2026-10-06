@@ -5,6 +5,8 @@
 <img width="15%" height="2622" alt="Simulator Screenshot - iPhone 17 - 2026-10-05 at 21 10 53" src="https://github.com/user-attachments/assets/8d8e3103-0666-4283-a824-9845f4aef0a8" />
 <img width="15%" height="2622" alt="Simulator Screenshot - iPhone 17 - 2026-10-05 at 21 10 36" src="https://github.com/user-attachments/assets/51aa7c0b-de88-4439-bd15-ca4613d260d3" />
 <img width="15%" height="2622" alt="Simulator Screenshot - iPhone 17 - 2026-10-05 at 21 10 41" src="https://github.com/user-attachments/assets/838874fd-cd93-4f83-ab36-c37ba9bbf260" />
+
+
 > Build momentum. Stay consistent. Become better.
 
 ---

@@ -78,7 +78,8 @@ Momentum gamifies productivity.
 Users earn XP by:
 
 - Completing habits
-- Finishing tasks<img width="15%" height="2622" alt="Simulator Screenshot - iPhone 17 - 2026-10-05 at 21 10 48" src="https://github.com/user-attachments/assets/40bf8373-7451-4c0f-8aa9-9b93b883d83f" />
+- Finishing tasks
+<img width="15%" height="2622" alt="Simulator Screenshot - iPhone 17 - 2026-10-05 at 21 10 48" src="https://github.com/user-attachments/assets/40bf8373-7451-4c0f-8aa9-9b93b883d83f" />
 <img width="15%" height="2622" alt="Simulator Screenshot - iPhone 17 - 2026-10-05 at 21 10 57" src="https://github.com/user-attachments/assets/0a603f0f-27f1-4869-ac2e-ebc6debe3a0b" />
 <img width="15%" height="2622" alt="Simulator Screenshot - iPhone 17 - 2026-10-05 at 21 10 26" src="https://github.com/user-attachments/assets/080f259d-5ae8-4b0f-9862-20e083419214" />
 <img width="15%" height="2622" alt="Simulator Screenshot - iPhone 17 - 2026-10-05 at 21 10 53" src="https://github.com/user-attachments/assets/8d8e3103-0666-4283-a824-9845f4aef0a8" />
